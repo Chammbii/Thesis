@@ -29,9 +29,9 @@ height:100vh;
 z-index:-1;
 }
 
-/* MENU GRID */
 
-.menu{
+/* old */
+/* .menu{
 
 position:fixed;
 top:28%;
@@ -42,20 +42,28 @@ grid-auto-rows:225px;
 gap:30px;
 justify-items:center;
 
+} */
+
+/* MENU GRID */ 
+.menu {
+  position: absolute;
+  top: 50%;
+  left: 70%;
+  transform: translate(-40%, -45%);
+
+  display: grid;
+  grid-template-columns: repeat(2, 250px);
+  gap: 10px;
+  justify-content: center;
 }
 
-.quizBtn{
-    position: fixed;
-    top: 74%;
-    right: 280px;
-}
 
 /* CATEGORY BUTTON */
 
 .btn{
 
-width:300px;
-height:240px;
+width:250px;
+height:170px;
 border-radius:25px;
 border:2px solid rgba(3, 3, 3, 0.664);
 background:transparent;
@@ -87,11 +95,11 @@ box-shadow:0 0 15px white;
     background-color: #5da9ff;
 }
 
-/* BUTTON ICON */
+/* BUTTON ICON LSSON*/
 
 .icon{
-width:260px;
-height:180px;
+width:180px;
+height:150px;
 object-fit:contain;
 
 box-shadow: black;
@@ -115,8 +123,8 @@ box-shadow: black;
   100% { transform: translate(-50%, -50%) scale(2); opacity:0; }
 }
 
-/* SETTINGS BUTTON */
 
+/* SETTINGS BUTTON */
 .settingsBtn{
 
 position:absolute;
@@ -148,14 +156,14 @@ transform:scale(.9);
 
 /* BACKGROUND IMAGE */
 .settingsBG{
-  width: 550px;
+  width: 450px;
 }
 
 /* CONTENT OVER IMAGE */
 .settingsContent{
   position: absolute;
-  top: 300px;
-  left: 80px;
+  top: 230px;
+  left: 65px;
   width: 70%;
   text-align: center;
 }
@@ -187,15 +195,16 @@ transform:scale(.9);
   color: white;
 }
 
+/* continue adjustt */
 .settingsButtons{
   margin-top: 140px;
     position: absolute;
-  top: 50px;   /* 🔥 adjust this value to move up/down */
-  
+  top: 130px;   /* 🔥 adjust this value to move up/down */
+  left: 45px;
 
   display: flex;
   justify-content: space-between;
-  padding: 0 40px;
+  padding: 0 10px;
 }
 
 /* back/continue button */
@@ -209,7 +218,7 @@ transform:scale(.9);
 /* continuee */
 .continueBtn img{
     
-  width: 140px;   /* adjust size here */
+  width: 100px;   /* adjust size here */
   height: auto;
   transition: transform 0.2s;
 }
@@ -224,7 +233,7 @@ transform:scale(.9);
 }
 /* back */
 .settingsButtons img{
-  width: 140px;
+  width: 100px;
   height: auto;
   transition: transform 0.2s;
 }
@@ -236,6 +245,15 @@ transform:scale(.9);
 .settingsButtons img:active{
   transform: scale(0.9);
 }
+
+/* VOLUME SLIDER */
+.settingRow input[type="range"]{
+  width: 120px;
+  cursor: pointer;
+}
+
+
+
 
 /* TEACHER LOGIN */
 .teacherOverlay{
@@ -341,7 +359,7 @@ transform:scale(.9);
 /* QUIZ BUTTON */
 .quizBtn {
   grid-column: 1 / span 2;
-  left: 74%;
+  left: 72%;
   border: none;
   cursor: pointer;
   
@@ -349,8 +367,15 @@ transform:scale(.9);
   height: 0;
 }
 
+/* quiz btn */
+.quizBtn{
+    position: fixed;
+    top: 74%;
+    right: 280px;
+}
+
 .quizBtn img {
-  width: 330px;
+  width: 290px;
   height: auto;
   transition: transform .2s;
 }
@@ -363,6 +388,68 @@ transform:scale(.9);
   transform: scale(0.95);
 }
 
+/* quiz result */
+.resultScreen{
+  position: fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background: rgba(0,0,0,0.6);
+
+  display:none;
+  justify-content:center;
+  align-items:center;
+  z-index:999;
+}
+
+.resultBox{
+  background:white;
+  padding:40px;
+  border-radius:20px;
+  text-align:center;
+  animation: popIn 0.4s ease;
+}
+
+.resultBox h1{
+  font-size:40px;
+  color:#4CAF50;
+}
+
+.resultBox h2{
+  font-size:30px;
+  margin:20px 0;
+}
+
+.resultBox button{
+  padding:15px 25px;
+  margin:10px;
+  font-size:18px;
+  border:none;
+  border-radius:10px;
+  cursor:pointer;
+  background:#ff9800;
+  color:white;
+}
+
+.resultBox button:hover{
+  transform: scale(1.1);
+}
+
+/* animation */
+@keyframes popIn{
+  from{
+    transform: scale(0.5);
+    opacity:0;
+  }
+  to{
+    transform: scale(1);
+    opacity:1;
+  }
+}
+
+
+
 /* play button */
 
 .playBtn{
@@ -374,7 +461,7 @@ transform:scale(.9);
 .playBtn{
   position: fixed;
   top: 74%;      
-  right: 465px;      
+  right: 340px;      
   border: none;
   background: transparent;
   cursor: pointer;
@@ -382,7 +469,7 @@ transform:scale(.9);
 
 .playBtn img{  
 
-  width:330px;   /* adjust size */
+  width:285px;   /* adjust size */
   height:auto;  
   transition:transform .2s;
 }
@@ -839,5 +926,4 @@ padding-top: 165px;
 .shapeDisplay:active{
   transform: scale(0.9);
 }
-
 
