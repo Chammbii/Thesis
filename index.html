@@ -18,7 +18,7 @@
  <!-- bgMusic -->
 <audio id="bgMusic" loop autoplay>
              <!-- wrong spell -->
-    <source src="bgMusicc.mp3" type="audio/mpeg">
+    <source src="bgMusic.mp3" type="audio/mpeg">
 </audio>        
 
 <link rel="stylesheet" href="style.css">
@@ -57,6 +57,7 @@
 
 </div>
 
+
 <!-- SETTINGS PANEL -->
 <div id="settingsPanel" class="settingsPanel">
 
@@ -91,16 +92,46 @@
     <button onclick="continueGame()" class="continueBtn">
         <img src="continuebtn.png" alt="Continue">
     </button>
-</div>
     </div>
 
+        <!-- VOLUME -->
+    <div class="settingRow">
+      <span>Volume</span>
+      <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5" onchange="changeVolume(this.value)">
+    </div>
+
+    <!-- MICROPHONE -->
+    <div class="settingRow">
+      <span>Microphone</span>
+      <button onclick="toggleMic()" id="micToggleBtn" class="toggle on">ON</button>
+    </div>
+
+
+    </div>
   </div>
 </div>
+
+
+
+
+
+
 
 <!-- quiz button -->
 <button class="quizBtn" onclick="startQuiz()">
 <img src="quizbtn.png">
 </button>
+
+<!-- quiz final score result-->
+<div id="resultScreen" class="resultScreen">
+  <div class="resultBox">
+    <h1 id="resultMessage">Great Job!</h1>
+    <h2 id="finalScoreText">Score: 0</h2>
+
+    <button onclick="restartQuiz()"> Quiz Again</button>
+    <button onclick="closeResult()"> Exit</button>
+  </div>
+</div>
 
 <!-- play buttonnn -->
 <button class="playBtn" onclick="startPlaytime()">
@@ -139,18 +170,11 @@
 
  <!-- QUIZ BOARD -->
 <div id="quizBoard" class="quizBoard">
-
   <h2 id="quizTopic"></h2>
-
-  <!-- ✅ ADD THIS -->
   <h3 id="difficultyLabel"></h3>
-
   <p id="questionText"></p>
-
   <div id="answers" class="answers"></div>
-
   <p id="quizProgress"></p>
-
   <button onclick="closeQuiz()" class="exitBtn">Exit</button>
 
 </div>
@@ -280,4 +304,3 @@
 </body>
 
 </html>
-
