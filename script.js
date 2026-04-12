@@ -149,7 +149,9 @@ alert("Incorrect email or password");
 let settingsState = {
   music: true,
   sound: true,
-  fullscreen: false
+  fullscreen: false,
+  volume: 0.5,
+  mic: true
 };
 
 // OPEN / CLOSE
@@ -178,6 +180,33 @@ function toggleMusic(){
     btn.classList.remove("off");
   }else{
     bgMusic.pause();
+    btn.innerText = "OFF";
+    btn.classList.add("off");
+    btn.classList.remove("on");
+  }
+}
+// voulume
+function changeVolume(value){
+  settingsState.volume = value;
+
+  // apply to background music
+  bgMusic.volume = value;
+
+  // optional: also control speech volume
+  console.log("Volume:", value);
+}
+
+// microphonee
+function toggleMic(){
+  let btn = document.getElementById("micToggleBtn");
+
+  settingsState.mic = !settingsState.mic;
+
+  if(settingsState.mic){
+    btn.innerText = "ON";
+    btn.classList.add("on");
+    btn.classList.remove("off");
+  }else{
     btn.innerText = "OFF";
     btn.classList.add("off");
     btn.classList.remove("on");
@@ -252,6 +281,12 @@ let settings = {
   volume: 0.5,
   fullscreen: false
 };
+
+
+
+
+
+
 
 
 
@@ -455,32 +490,32 @@ let quizData = {
 
 Alphabet:{
 easy:[
-{q:"What letter comes after A?",a:["B","C","D"],c:"B"},
-{q:"What letter comes after B?",a:["C","D","E"],c:"C"},
-{q:"What letter comes after C?",a:["D","E","F"],c:"D"}
+{q:"What letter comes after A?",a:["B","F","E"],c:"B"},
+{q:"What letter comes after B?",a:["C","K","H"],c:"C"},
+{q:"What letter comes after C?",a:["D","A","F"],c:"D"}
 ],
 medium:[
 {q:"What letter comes after D?",a:["E","F","G"],c:"E"},
-{q:"What letter comes after F?",a:["G","H","I"],c:"G"},
-{q:"What letter comes after H?",a:["I","J","K"],c:"I"}
+{q:"What letter comes after F?",a:["G","D","I"],c:"G"},
+{q:"What letter comes after H?",a:["I","E","M"],c:"I"}
 ],
 hard:[
 {q:"What letter comes before D?",a:["B","C","E"],c:"C"},
 {q:"What letter comes before G?",a:["E","F","H"],c:"F"},
-{q:"What letter is between H and J?",a:["G","I","K"],c:"I"}
+{q:"What letter is between H and J?",a:["A","I","J"],c:"I"}
 ]
 },
 
 Numbers:{
-easy:[
-{q:"What number comes after 1?",a:["2","3","4"],c:"2"},
-{q:"What number comes after 2?",a:["3","4","5"],c:"3"},
-{q:"What number comes after 3?",a:["4","5","6"],c:"4"}
+easy:[ 
+{q:"What number comes after 1?",a:["2","4","6"],c:"2"},
+{q:"What number comes after 2?",a:["3","1","4"],c:"3"},
+{q:"What number comes after 3?",a:["8","2","4"],c:"4"}
 ],
 medium:[
-{q:"What number comes after 5?",a:["6","7","8"],c:"6"},
-{q:"What number comes after 7?",a:["8","9","10"],c:"8"},
-{q:"What number comes after 9?",a:["10","11","12"],c:"10"}
+{q:"What number comes after 5?",a:["6","4","10"],c:"6"},
+{q:"What number comes after 7?",a:["8","6","5"],c:"8"},
+{q:"What number comes after 9?",a:["9","8","10"],c:"10"}
 ],
 hard:[
 {q:"What number comes before 5?",a:["3","4","6"],c:"4"},
@@ -575,15 +610,16 @@ function loadQuestion(){
   let answersDiv = document.getElementById("answers");
   answersDiv.innerHTML = "";
 
-  data.a.forEach(choice => {
+  let shuffledAnswers = shuffle([...data.a]);
+
+shuffledAnswers.forEach(choice => {
     let btn = document.createElement("button");
     btn.innerText = choice;
 
     btn.onclick = () => checkAnswer(btn, data.c);
 
     answersDiv.appendChild(btn);
-  });
-
+});
   speak(data.q);
 }
 
@@ -631,8 +667,8 @@ function nextQuestion(){
     }
     else{
       speak("You finished! Great job!");
-      alert("Final Score: " + score);
-      closeQuiz();
+
+      showResult();
       return;
     }
 
@@ -648,6 +684,38 @@ function nextQuestion(){
 function closeQuiz(){
   document.getElementById("quizBoard").style.display="none";
 }
+
+function showResult(){
+
+  document.getElementById("quizBoard").style.display = "none";
+
+  let message = "";
+
+  if(score <= 2){
+    message = "😊 Good try!";
+  } else if(score <= 4){
+    message = "😃 Nice job!";
+  } else {
+    message = "🎉 Amazing!";
+  }
+
+  document.getElementById("resultMessage").innerText = message;
+  document.getElementById("finalScoreText").innerText = "Score: " + score;
+
+  document.getElementById("resultScreen").style.display = "flex";
+
+  speak(message + ". Your score is " + score);
+}
+
+function restartQuiz(){
+  document.getElementById("resultScreen").style.display = "none";
+  startQuiz();
+}
+
+function closeResult(){
+  document.getElementById("resultScreen").style.display = "none";
+}
+
 
 
 
@@ -726,22 +794,21 @@ if(SpeechRecognition){
 // START LISTENING
 function startListening(){
 
+  if(!settingsState.mic){
+    speak("Microphone is off");
+    return;
+  }
+
   if(!recognition){
     alert("Speech recognition not supported in this browser");
     return;
   }
 
   speak("Say your answer clearly");
-
   recognition.start();
 
   recognition.onresult = function(event){
-
-    let results = event.results[0];
-    let spoken = normalizeSpeech(results[0].transcript);
-
-    console.log("You said:", spoken);
-
+    let spoken = normalizeSpeech(event.results[0][0].transcript);
     matchVoiceAnswer(spoken);
   };
 
@@ -1307,4 +1374,3 @@ function speakShape(){
   speak(name);
 
 }
-
