@@ -18,7 +18,7 @@
  <!-- bgMusic -->
 <audio id="bgMusic" loop autoplay>
              <!-- wrong spell -->
-    <source src="bgMusic.mp3" type="audio/mpeg">
+    <source src="bgMusicc.mp3" type="audio/mpeg">
 </audio>        
 
 <link rel="stylesheet" href="style.css">
@@ -139,17 +139,18 @@
 </button>
 </div>
 
+
 <!-- PLAYTIME DASHBOARD -->
 <div id="playDashboard" class="playDashboard">
 
+  <h1 class="gamesTitle">Games</h1>
+
   <div class="playGrid">
 
-    <button onclick="startGame('color')" class="playCard">🎨Tap the Color</button>
-    <button onclick="startGame('number')" class="playCard">🔢Tap the Number</button>
-    <button onclick="startGame('alphabet')" class="playCard">🔤Tap the Alphabet</button>
-    <button onclick="startGame('shape')" class="playCard">🔺Tap the Shape</button>
-
-   
+    <button onclick="startGame('color')" class="playCard colorCard">🎨 Tap the Color</button>
+    <button onclick="startGame('number')" class="playCard numberCard">🔢 Tap the Number</button>
+    <button onclick="startGame('alphabet')" class="playCard alphabetCard">🔤 Tap the Alphabet</button>
+    <button onclick="startGame('shape')" class="playCard shapeCard">🔺 Tap the Shape</button>
 
   </div>
 
@@ -221,8 +222,8 @@
 <!-- ALPHABET LESSON -->
 
 <div id="alphabetLesson" class="alphabetLesson">
-<h1 id="letterDisplay">A</h1>
-<h2 id="wordDisplay">Apple</h2>
+
+<h2 id="wordDisplay">A - Apple</h2>
 
 <div id="alphabetObjects"></div>
 
@@ -241,14 +242,13 @@
 <button onclick="closeLesson()">Exit Lesson</button>
 
 </div>
-
 <!-- NUMBER LESSON -->
 
 <div id="numberLesson" class="numberLesson">
-<h1 id="numberDisplay">1</h1>
-<h2 id="numberWord">One Apple</h2>
+<h2 id="numberWord">1 - One Apple</h2>
 <div id="numberObjects" class="numberObjects"></div>
 <button onclick="speakNumber()">🔊 Speak</button>
+<button onclick="startVoice()">🎤 Say Letter</button>
 <br><br>
 <button onclick="prevNumber()">⬅ Previous</button>
 <button onclick="nextNumber()">Next ➡</button>
@@ -266,6 +266,7 @@
 <div id="colorEmoji"></div>  
 
 <button onclick="speakColor()">🔊 Speak</button>
+<button onclick="startVoice()">🎤 Say Letter</button>
 <br><br>
 
 <button onclick="prevColor()">⬅ Previous</button>
@@ -286,12 +287,10 @@
 <div id="shapeDisplay" class="shapeDisplay"></div>
 
 <button onclick="speakShape()">🔊 Speak</button>
-
+<button onclick="startVoice()">🎤 Say Letter</button>
 <br><br>
-
 <button onclick="prevShape()">⬅ Previous</button>
 <button onclick="nextShape()">Next ➡</button>
-
 <br><br>
 
 <button onclick="closeShapesLesson()">Exit Lesson</button>
