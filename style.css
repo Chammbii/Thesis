@@ -30,19 +30,6 @@ z-index:-1;
 }
 
 
-/* old */
-/* .menu{
-
-position:fixed;
-top:28%;
-right:10%;
-display:grid;
-grid-template-columns:repeat(2,280px);
-grid-auto-rows:225px;
-gap:30px;
-justify-items:center;
-
-} */
 
 /* MENU GRID */ 
 .menu {
@@ -483,43 +470,79 @@ transform:scale(.9);
 }
 
 /* PLAYTIME DASHBOARD */
+/* PLAYTIME DASHBOARD (FUN BG) */
 .playDashboard{
-position:fixed;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%);
-width:800px;
-height:600px;
-background:#fff;
-border-radius:20px;
-text-align:center;
-display:none;
-z-index:200;
-padding:20px;
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:650px;
+  height:420px;
+  border-radius:25px;
+  text-align:center;
+  display:none;
+  z-index:200;
+  padding:20px;
+
+  /* 🎨 colorful gradient bg */
+  background: linear-gradient(135deg, #ff9a9e, #fbc2eb, #a6c1ee);
+  background-size: 400% 400%;
+  animation: gradientMove 6s infinite alternate;
 }
 
+/* 🎨 ANIMATION */
+@keyframes gradientMove{
+  0%{ background-position: left; }
+  100%{ background-position: right; }
+}
+
+/* 🎮 TITLE */
+.gamesTitle{
+  font-size: 40px;
+  color: white;
+  text-shadow: 2px 2px 5px black;
+  margin-bottom: 10px;
+}
+
+/* GRID */
 .playGrid{
-display:grid;
-top: 300px;
-grid-template-columns:repeat(2,1fr);
-gap:20px;
-margin-top:40px;
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:20px;
+  margin-top:20px;
 }
 
+/* 🎮 GAME CARDS */
 .playCard{
-padding:30px;
-font-size:24px;
-border:none;
-border-radius:20px;
-cursor:pointer;
-background:#f0f0f0;
-transition:0.2s;
+  padding:25px;
+  font-size:22px;
+  border:none;
+  border-radius:20px;
+  cursor:pointer;
+  color:white;
+  font-weight:bold;
+  transition:0.3s;
 }
 
+/* 🌈 DIFFERENT COLORS PER GAME */
+.colorCard{ background:#ff6b6b; }
+.numberCard{ background:#4ecdc4; }
+.alphabetCard{ background:#a66cff; }
+.shapeCard{ background:#ffa94d; }
+
+/* ✨ HOVER EFFECT */
 .playCard:hover{
-transform:scale(1.05);
-background:#dff0ff;
+  transform:scale(1.1) rotate(2deg);
+  box-shadow:0 10px 20px rgba(0,0,0,0.3);
 }
+
+/* CLICK EFFECT */
+.playCard:active{
+  transform:scale(0.95);
+}
+
+
+
 
 /* GAME SCREEN */
 .playGame{
@@ -527,9 +550,9 @@ position:fixed;
 top:50%;
 left:50%;
 transform:translate(-50%,-50%);
-width:800px;
-height:600px;
-background:#fff;
+width:500px;
+height:300px;
+background:#f7f5ea;
 border-radius:20px;
 text-align:center;
 display:none;
@@ -567,7 +590,7 @@ margin-top:30px;
 .playDashboard{
   background: url("playybg.png") no-repeat center;
   background-size: cover;
-  background: rgb(255, 255, 255);
+  background: rgb(195, 228, 255);
 }
 
 .playGame{
@@ -575,9 +598,6 @@ margin-top:30px;
   background-size: cover;
    background: rgb(255, 255, 255);
 }
-
-
-
 
 
 /*quiz*/
@@ -679,24 +699,16 @@ display:none;
 z-index:200;
 }
 
-.alphabetLesson h1{
-
-font-size:120px;
-margin:0;
-
-}
-
 .alphabetLesson h2{
-
-font-size:40px;
-margin:10px 0 30px 0;
-
+  font-size:50px;
+  margin:170px 0 20px 0;
 }
+
 
 .alphabetLesson button{
 
 padding:10px 20px;
-font-size:18px;
+font-size:15px;
 margin:5px;
 cursor:pointer;
 border-radius:10px;
@@ -712,12 +724,13 @@ width:1100px;
 height:800px;
 
 background-image:url("alphabetbg.png");
-background-size:cover;
+background-size: contain; 
 background-position:center;
 background-repeat:no-repeat;
 
-padding-top: 165px;
+  padding: 40px 20px;
 }
+
 .alphabetObjects{
 margin:20px;
 min-height:80px;
@@ -738,17 +751,13 @@ width:1100px;
 height:800px;
 
 background-image:url("numberbg.png");
-background-size:cover;
+background-size: contain;
 background-position:center;
 background-repeat:no-repeat;
 
-padding-top:165px;
+padding-top:365px;
 }
 
-.numberLesson h1{
-font-size:120px;
-margin:0;
-}
 
 .numberLesson h2{
 font-size:40px;
@@ -756,7 +765,7 @@ margin:10px 0;
 }
 
 .numberObjects{
-font-size:60px;
+font-size:40px;
 margin:20px 0;
 }
 
@@ -771,6 +780,7 @@ background:#ff9a5c;
 color:white;
 }
 
+
 /* color lesson */
 .colorsLesson{
 position:fixed;
@@ -783,27 +793,27 @@ z-index:200;
 
 }
 
-.colorBox{
+/* .colorBox{
 
-width:150px;
-height:150px;
+width:50px;
+height:50px;
 border-radius:20px;
 margin:20px auto;
 border:4px solid #333;
 
-}
+} */
 
 .colorsLesson h1{
 
-font-size:50px;
-margin:50px 0;
+font-size:30px;
 
+margin-top: 60px;
 }
 
 .colorsLesson button{
 
 padding:10px 20px;
-font-size:18px;
+font-size:15px;
 margin:5px;
 cursor:pointer;
 border-radius:10px;
@@ -813,23 +823,24 @@ color:white;
 
 }
 .colorsLesson{
-    width:1350px;
+width:1050px;
 height:1000px;
 
 background-image:url("colorbg.png");
-background-size:cover;
+background-size:contain;
 background-position:center;
 background-repeat:no-repeat;
 
-padding-top: 165px;
+padding-top: 460px;
 }
 
 .colorEmoji{
 display:block;
 text-align:center;
-font-size:80px;
+font-size:20px;
 margin:20px auto;
 }
+
 
 /* shape lesson */
 
@@ -841,23 +852,38 @@ transform:translate(-50%,-50%);
 text-align:center;
 display:none;
 z-index:200;
+
 }
 
+
+ .shapeDisplay{
+  width:150px;
+  height:150px;
+  margin:40px auto;
+
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  position: relative; 
+}
+
+
+
+
+.shapeDisplay.emoji{
+  font-size: 90px; /* adjust size here */
+  margin-top: 58px;
+}
 .shapeDisplay{
-width:200px;
-height:200px;
-margin:20px auto;
-display:flex;
-justify-content:center;
-align-items:center;
-font-size:300px;
+  transition: transform 0.2s;
 }
 
 .shapesLesson button{
 
 padding:10px 20px;
-font-size:18px;
-margin:5px;
+font-size:15px;
+margin: -1px;
 cursor:pointer;
 border-radius:10px;
 border:none;
@@ -869,54 +895,70 @@ color:white;
 /* shapes */
 
 .circle{
-width:200px;
-height:200px;
+width:100px;
+height:90px;
 background:#5da9ff;
 border-radius:50%;
+margin-top: 100px;
 }
 
 .square{
-width:200px;
-height:200px;
+width:100px;
+height:100px;
 background:#3ec26b;
+margin-top: 100px;
 }
 
+
 .triangle{
-width:0;
-height:0;
-border-left:100px solid transparent;
-border-right:100px solid transparent;
-border-bottom:200px solid #ff9a5c;
+  width:0;
+  height:0;
+  border-left:50px solid transparent;
+  border-right:50px solid transparent;
+  border-bottom:100px solid #ff9a5c;
+
+  position: relative;
+  top: 10px; 
+  /* 👈 adjust until centered */
+  margin-top: 80px;
 }
 
 .rectangle{
-width:250px;
-height:150px;
+width:150px;
+height:50px;
 background:#9b6df3;
+margin-top: 120px;
 }
 
 .oval{
-width:220px;
-height:140px;
+width:110px;
+height:70px;
 background:#ff9a5c;
 border-radius:50%;
+margin-top: 100px;
 }
 
 .shapesLesson{
- width:1100px;
+ width:1000px;
 height:800px;
 
 background-image:url("shapebg.png");
-background-size:cover;
+background-size:contain;
 background-position:center;
 background-repeat:no-repeat;
 
-padding-top: 165px;
+padding-top: 160px;
 }
 
+#shapeName{
+  position: relative;
+  top: 90px; 
+  /* push down slightly */
+}
 .shapeDisplay{
   cursor: pointer;
   transition: transform 0.2s;
+
 }
 
 .shapeDisplay:hover{
@@ -926,4 +968,6 @@ padding-top: 165px;
 .shapeDisplay:active{
   transform: scale(0.9);
 }
+
+
 
