@@ -1,21 +1,83 @@
 
 
-
-// function
-function speakSlow(text){
-
-  const parts = text.split(',');
-
-  parts.forEach((part, index) => {
-    setTimeout(() => {
-      const speech = new SpeechSynthesisUtterance(part);
-      speech.rate = 0.100;
-      speech.pitch = 2.2;
-      window.speechSynthesis.speak(speech);
-    }, index * 6500); // delay between chunks
-  });
-
+async function speak(text){
+  // your ElevenLabs API code
 }
+// function
+// function speakSlow(text){
+
+//   const parts = text.split(',');
+
+//   parts.forEach((part, index) => {
+//     setTimeout(() => {
+//       const speech = new SpeechSynthesisUtterance(part);
+//       speech.rate = 0.100;
+//       speech.pitch = 2.2;
+//       window.speechSynthesis.speak(speech);
+//     }, index * 6500); // delay between chunks
+//   });
+
+// }
+
+
+// ==============================
+// 🎤 ELEVENLABS CHILD VOICE
+// ==============================
+
+const API_KEY = "sk_4b46756405f32fa7dad4d7de79ca685c48fd836f57799e94";
+
+// child-like voice (you can change later)
+const VOICE_ID = "EXAVITQu4vr4xnSDxMaL"; 
+
+async function speak(text){
+
+  try{
+
+    const response = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`,
+      {
+        method: "POST",
+        headers: {
+          "xi-api-key": API_KEY,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          text: text,
+          model_id: "eleven_monolingual_v1",
+          voice_settings: {
+            stability: 0.4,
+            similarity_boost: 0.8
+          }
+        })
+      }
+    );
+
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+
+    let audio = new Audio(audioUrl);
+
+    // use your volume slider
+    audio.volume = settingsState.volume || 0.5;
+
+    audio.play();
+
+  }catch(err){
+
+    console.log("API failed, fallback used");
+
+    fallbackSpeak(text);
+  }
+}
+
+// fallback if no internet
+function fallbackSpeak(text){
+  let speech = new SpeechSynthesisUtterance(text);
+  speech.rate = 0.8;
+  speech.pitch = 1.3;
+  window.speechSynthesis.speak(speech);
+}
+
 
 // 
 function openLesson(name){
@@ -717,8 +779,6 @@ function closeResult(){
 }
 
 
-
-
 // NORMALIZE SPEECH (clean input)
 function normalizeSpeech(text){
   return text
@@ -729,70 +789,80 @@ function normalizeSpeech(text){
 
 // voice speech
 const synonyms = {
-  "a": ["a", "hey", "ei"],
-  "b": ["b", "bee"],
-  "c": ["c", "see"],
-  "d": ["d"],
-  "e": ["e"],
-  "f": ["f"],
-  "g": ["g"],
-  "h": ["h"],
-  "i": ["i"],
-  "j": ["j"],
-  "k": ["k"],
-  "l": ["l"],
-  "m": ["m"],
-  "n": ["n"],
-  "o": ["o"],
-  "p": ["p"],
-  "q": ["q"],
-  "r": ["r"],
-  "s": ["s"],
-  "t": ["t"],
-  "u": ["u"],
-  "v": ["v"],
-  "w": ["w"],
-  "x": ["x"],
-  "y": ["y"],
-  "z": ["z"],
 
-  "red": ["red"],
-  "blue": ["blue", "blu"],
-  "green": ["green"],
-  "yellow": ["yellow"],
-  "orange": ["orange"],
-  "purple": ["purple"],
-  "pink": ["pink"],
-  "black": ["black"],
-  "white": ["white"],
-  "brown": ["brown"],
 
-  "1": ["one"],
-  "2": ["two", "to", "too"],
-  "3": ["three"],
-  "4": ["four", "for"],
-  "5": ["five"],
-  "6": ["six"],
-  "7": ["seven"],
-  "8": ["eight"],
-  "9": ["nine"],
-  "10": ["ten"]
+  // 🔤 ALPHABET (kid pronunciation + phonics)
+  "a": ["a", "hey", "ei", "ay", "aye  "],
+  "b": ["b", "bee", "be", "bi"],
+  "c": ["c", "see", "si"],
+  "d": ["d", "di", "dee"],
+  "e": ["e", "ee", "i"],
+  "f": ["f", "ef", "eef"],
+  "g": ["g", "gee", "ji"],
+  "h": ["h", "aitch", "ets"],
+  "i": ["i", "eye", "ay", "aye"],
+  "j": ["j", "jay", "je"],
+  "k": ["k", "kay", "ka", "kah"],
+  "l": ["l", "el"],
+  "m": ["m", "em"],
+  "n": ["n", "en"],
+  "o": ["o", "oh"],
+  "p": ["p", "pee", "pi"],
+  "q": ["q", "cue", "kyu"],
+  "r": ["r", "ar"],
+  "s": ["s", "es"],
+  "t": ["t", "tee"],
+  "u": ["u", "you"],
+  "v": ["v", "vee"],
+  "w": ["w", "double u", "dabolyu"],
+  "x": ["x", "eks", "ex"],
+  "y": ["y", "why"],
+  "z": ["z", "zee", "zed"],
+
+  // 🎨 COLORS (with kid speech mistakes)
+  "red": ["red", "wed", "led"],
+  "blue": ["blue", "blu", "blew"],
+  "green": ["green", "gween"],
+  "yellow": ["yellow", "yelo", "lelo"],
+  "orange": ["orange", "oranj", "owenj"],
+  "purple": ["purple", "purpol", "pupol"],
+  "pink": ["pink", "pinc"],
+  "black": ["black", "blak"],
+  "white": ["white", "wait"],
+  "brown": ["brown", "brawn"],
+
+  // 🔢 NUMBERS (common speech confusion)
+  "1": ["one", "wan", "an", "han"],
+  "2": ["two", "to", "too", "tu", "toh", "tuh"],
+  "3": ["three", "tree"],
+  "4": ["four", "for", "por"],
+  "5": ["five", "payb"],
+  "6": ["six", "siks"],
+  "7": ["seven", "seben"],
+  "8": ["eight", "eyt"],
+  "9": ["nine", "nayn"],
+  "10": ["ten", "tin"]
+
 };
 
 // SPEECH RECOGNITION SETUP
 let SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition;
 
+let listenTimeout;
+let LISTEN_DURATION = 10000; // ⏱️ 7 seconds (perfect for kids)
+let isListening = false;
+
 if(SpeechRecognition){
   recognition = new SpeechRecognition();
   recognition.lang = "en-US";
   recognition.continuous = false;
   recognition.interimResults = true; // 🔥 improves accuracy
-  recognition.maxAlternatives = 3;   // 🔥 better matching
+  recognition.maxAlternatives = 5;   // 🔥 better matching
 }
 
 // START LISTENING
-function startListening(){
+function startListening(){  
 
   if(!settingsState.mic){
     speak("Microphone is off");
@@ -804,17 +874,53 @@ function startListening(){
     return;
   }
 
-  speak("Say your answer clearly");
+  // 🔥 prevent double start
+  if(isListening){
+    return;
+  }
+
+  isListening = true;
+
+  speak("Get ready... Speak now!");
+
   recognition.start();
 
+  // ⏱️ GIVE TIME TO SPEAK
+  clearTimeout(listenTimeout);
+  listenTimeout = setTimeout(() => {
+    recognition.stop();
+    speak("Time is up! Try again.");
+    isListening = false;
+  }, LISTEN_DURATION);
+
   recognition.onresult = function(event){
+
+    clearTimeout(listenTimeout);
+    isListening = false;
+
     let spoken = normalizeSpeech(event.results[0][0].transcript);
     matchVoiceAnswer(spoken);
   };
 
   recognition.onerror = function(){
+
+    clearTimeout(listenTimeout);
+    isListening = false;
+
     speak("I didn't hear you. Try again!");
   };
+
+  recognition.onend = function(){
+
+  clearTimeout(listenTimeout);
+
+  // ❗ if no result was captured
+  if(isListening){
+    speak("I didn't hear you. Try again!");
+    isListening = false;
+  }
+
+};
 }
 
 // SMART MATCHING
@@ -856,21 +962,21 @@ function speak(text){
 }
 
 
-// function
-function speakSlow(text){
+// // function
+// function speakSlow(text){
 
-  const parts = text.split(',');
+//   const parts = text.split(',');
 
-  parts.forEach((part, index) => {
-    setTimeout(() => {
-      const speech = new SpeechSynthesisUtterance(part);
-      speech.rate = 0.100;
-      speech.pitch = 2.2;
-      window.speechSynthesis.speak(speech);
-    }, index * 6500); // delay between chunks
-  });
+//   parts.forEach((part, index) => {
+//     setTimeout(() => {
+//       const speech = new SpeechSynthesisUtterance(part);
+//       speech.rate = 0.100;
+//       speech.pitch = 2.2;
+//       window.speechSynthesis.speak(speech);
+//     }, index * 6500); // delay between chunks
+//   });
 
-}
+// }
 
 
 
@@ -891,7 +997,7 @@ const alphabetData = [
 {l:"K",w:"Kite",obj:"🪁"},
 {l:"L",w:"Lion",obj:"🦁"},
 {l:"M",w:"Monkey",obj:"🐵"},
-{l:"N",w:"Nest",obj:"🪺"},
+{l:"N",w:"Notebook",obj:"📓"},
 {l:"O",w:"Orange",obj:"🍊"},
 {l:"P",w:"Pencil",obj:"✏️"},
 {l:"Q",w:"Queen",obj:"👑"},
@@ -901,7 +1007,7 @@ const alphabetData = [
 {l:"U",w:"Umbrella",obj:"☂️"},
 {l:"V",w:"Violin",obj:"🎻"},
 {l:"W",w:"Watermelon",obj:"🍉"},
-{l:"X",w:"Xylophone",obj:"🎶"},
+{l:"X",w:"Xmas Tree",obj:"🎄"},
 {l:"Y",w:"Yoyo",obj:"🪀"},
 {l:"Z",w:"Zebra",obj:"🦓"}
 ];
@@ -924,8 +1030,7 @@ function updateAlphabet(){
 
 let data = alphabetData[alphabetIndex];
 
-document.getElementById("letterDisplay").innerText = data.l;
-document.getElementById("wordDisplay").innerText = data.w;
+document.getElementById("wordDisplay").innerText = data.l + " - " + data.w;
 
 /* EMOJI OBJECTS */
 let container = document.getElementById("alphabetObjects");
@@ -1063,8 +1168,7 @@ function updateNumber(){
 
 let data = numberData[numberIndex];
 
-document.getElementById("numberDisplay").innerText = data.n;
-document.getElementById("numberWord").innerText = data.w;
+document.getElementById("numberWord").innerText = data.n + " - " + data.w;
 
 /* INTERACTIVE OBJECTS */
 let container = document.getElementById("numberObjects");
@@ -1141,13 +1245,49 @@ document.getElementById("numberLesson").style.display="none";
 
 }
 
+// voice recognition
+function startNumberVoice(){
+
+let SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if(!SpeechRecognition){
+alert("Voice recognition not supported");
+return;
+}
+
+let recognition = new SpeechRecognition();
+recognition.lang = "en-US";
+
+recognition.start();
+
+recognition.onresult = function(event){
+
+let spoken = event.results[0][0].transcript.toLowerCase();
+
+let correct = numberData[numberIndex].n; // "1", "2", etc
+
+// match using synonyms
+let possible = synonyms[correct] || [correct];
+
+let matched = possible.some(word => spoken.includes(word));
+
+if(matched){
+speak("Good job!");
+nextNumber();
+}else{
+speak("Try again");
+}
+
+};
+}
+
 /* SPEECH FUNCTION (IMPORTANT!) */
 
-function speak(text){
-let speech = new SpeechSynthesisUtterance(text);
-speech.lang = "en-US";
-window.speechSynthesis.speak(speech);
-}
+// function speak(text){
+// let speech = new SpeechSynthesisUtterance(text);
+// speech.lang = "en-US";
+// window.speechSynthesis.speak(speech);
+// }
 
 /*COLORS LESSON */
 
@@ -1160,7 +1300,7 @@ const colorsData = [
 {name:"Orange", object:"Cat", emoji:"🐱", value:"orange"},
 {name:"Purple", object:"Grapes", emoji:"🍇", value:"purple"},
 {name:"Pink", object:"Flower", emoji:"🌸", value:"pink"},
-{name:"Black", object:"Ant", emoji:"🐜", value:"black"},
+{name:"Black", object:"Heart", emoji:"🖤", value:"black"},
 {name:"White", object:"Cloud", emoji:"☁️", value:"white"},
 {name:"Brown", object:"Bear", emoji:"🐻", value:"brown"}
 
@@ -1186,7 +1326,8 @@ let nameEl = document.getElementById("colorName");
 let boxEl = document.getElementById("colorBox");
 let emojiEl = document.getElementById("colorEmoji");
 
-nameEl.innerText = data.name + " " + data.object;
+
+nameEl.innerText = data.name + " - " + data.object;
 boxEl.style.background = data.value;
 emojiEl.innerText = data.emoji;
 
@@ -1246,6 +1387,41 @@ speakColor();
 
 }
 
+// voice recoggg
+function startColorVoice(){
+
+let SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if(!SpeechRecognition){
+alert("Voice recognition not supported");
+return;
+}
+
+let recognition = new SpeechRecognition();
+recognition.lang = "en-US";
+
+recognition.start();
+
+recognition.onresult = function(event){
+
+let spoken = event.results[0][0].transcript.toLowerCase();
+
+let correct = colorsData[colorIndex].name.toLowerCase();
+
+let possible = synonyms[correct] || [correct];
+
+let matched = possible.some(word => spoken.includes(word));
+
+if(matched){
+speak("Nice!");
+nextColor();
+}else{
+speak("Try again");
+}
+
+};
+}
+
 function closeColorsLesson(){
 
 document.getElementById("colorsLesson").style.display="none";
@@ -1301,7 +1477,7 @@ display.className="shapeDisplay " + data.class;
 display.innerHTML="";
 
 }else{
-
+ display.className = "shapeDisplay emoji"; 
 display.innerHTML=data.symbol;
 
 }
@@ -1349,6 +1525,38 @@ updateShape();
 speakShape();
 
 }
+
+// voice recoggg
+function startShapeVoice(){
+
+let SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if(!SpeechRecognition){
+alert("Voice recognition not supported");
+return;
+}
+
+let recognition = new SpeechRecognition();
+recognition.lang = "en-US";
+
+recognition.start();
+
+recognition.onresult = function(event){
+
+let spoken = event.results[0][0].transcript.toLowerCase();
+
+let correct = shapesData[shapeIndex].name.toLowerCase();
+
+if(spoken.includes(correct)){
+speak("Great!");
+nextShape();
+}else{
+speak("Try again");
+}
+
+};
+}
+
 
 /* CLOSE */
 
