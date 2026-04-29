@@ -1,7 +1,98 @@
 
 
+function createVoiceBubble(){
+  let bubble = document.getElementById("interactiveVoiceBubble");
+  if (bubble) return bubble;
+
+  bubble = document.createElement("div");
+  bubble.id = "interactiveVoiceBubble";
+  bubble.style.position = "fixed";
+  bubble.style.bottom = "25px";
+  bubble.style.left = "50%";
+  bubble.style.transform = "translateX(-50%) translateY(0)";
+  bubble.style.padding = "14px 18px";
+  bubble.style.background = "rgba(255,255,255,0.95)";
+  bubble.style.border = "2px solid #5c73ff";
+  bubble.style.borderRadius = "24px";
+  bubble.style.boxShadow = "0 8px 20px rgba(0,0,0,0.18)";
+  bubble.style.color = "#222";
+  bubble.style.fontSize = "16px";
+  bubble.style.fontWeight = "600";
+  bubble.style.maxWidth = "90%";
+  bubble.style.textAlign = "center";
+  bubble.style.zIndex = "9999";
+  bubble.style.opacity = "0";
+  bubble.style.transition = "opacity 0.22s ease, transform 0.22s ease";
+  bubble.setAttribute("aria-live", "polite");
+  bubble.setAttribute("role", "status");
+
+  document.body.appendChild(bubble);
+  return bubble;
+}
+
+function showVoiceBubble(text){
+  let bubble = createVoiceBubble();
+  bubble.innerText = text;
+  bubble.style.opacity = "1";
+  bubble.style.transform = "translateX(-50%) translateY(0)";
+
+  if (bubble.hideTimeout){
+    clearTimeout(bubble.hideTimeout);
+  }
+
+  bubble.hideTimeout = setTimeout(() => {
+    bubble.style.opacity = "0";
+    bubble.style.transform = "translateX(-50%) translateY(-8px)";
+  }, 4200);
+}
+
+let interactiveSpeechUtterance = null;
+
+function findKidVoice(){
+  let voices = window.speechSynthesis.getVoices();
+  if (!voices || !voices.length) return null;
+
+  let matches = voices.filter(v => {
+    const name = v.name.toLowerCase();
+    const lang = v.lang.toLowerCase();
+    return (name.includes("child") || name.includes("kid") || name.includes("young") || name.includes("grandchild") || name.includes("girl") || name.includes("boy")) && lang.startsWith("en");
+  });
+
+  if (matches.length) return matches[0];
+
+  matches = voices.filter(v => v.lang.toLowerCase().startsWith("en"));
+  return matches.length ? matches[0] : null;
+}
+
 function speak(text){
-  // Speech output disabled.
+  if (!text || typeof text !== "string") return;
+
+  showVoiceBubble(text);
+
+  if (!window.speechSynthesis) return;
+
+  if (interactiveSpeechUtterance) {
+    window.speechSynthesis.cancel();
+    interactiveSpeechUtterance = null;
+  }
+
+  let utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.78;
+  utterance.pitch = 1.2;
+  utterance.volume = 1;
+  utterance.lang = "en-US";
+
+  let kidVoice = findKidVoice();
+  if (kidVoice) {
+    utterance.voice = kidVoice;
+  }
+
+  interactiveSpeechUtterance = utterance;
+  window.speechSynthesis.speak(utterance);
+
+  utterance.onend = () => {
+    interactiveSpeechUtterance = null;
+  };
 }
 
 function openLesson(name){
@@ -543,7 +634,7 @@ function startQuiz(){
 
   document.getElementById("quizBoard").style.display="block";
 
-  speak("Let's start easy!");
+  speak("Let's quiz! We'll start easy.");
   loadQuestion();
 }
 
@@ -610,7 +701,8 @@ function checkAnswer(btn, correct){
   } else {
 
     btn.classList.add("wrong");
-    speak("Try again!");
+    let encouragement = ["You can do it!", "Try again, you're close!", "Keep going!", "Nice try! Let's try that again."];
+    speak(encouragement[Math.floor(Math.random()*encouragement.length)]);
 
   }
 }
