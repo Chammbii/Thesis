@@ -175,14 +175,20 @@
 
 </div>
 
+
+
+
 <!-- TEACHER LOGIN -->
 <div id="teacherOverlay" class="teacherOverlay">
   <div class="teacherBox">
     
+    
+
     <!-- CLOSE BUTTON -->
     <button class="closeBtn" onclick="closeTeacherLogin()">✕</button>
 
     <!-- LOGIN FORM -->
+     
     <div id="loginForm" class="formContainer">
       <input type="email" id="loginEmail" placeholder="Email">
       <input type="password" id="loginPassword" placeholder="Password">
@@ -205,10 +211,18 @@
       <p class="switchText">
         Already have an account? <span onclick="showLogin()">Login</span>
       </p>
+
+      
+
+
+
     </div>
 
   </div>
 </div>
+
+
+
 
 <!-- ALPHABET LESSON -->
 
