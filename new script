@@ -190,32 +190,43 @@ showLogin();
 
 
 // loginteacher 
-function loginTeacher(){
-let email = document.getElementById("loginEmail").value.trim();
-let password = document.getElementById("loginPassword").value.trim();
-let savedEmail = localStorage.getItem("teacherEmail");
-let savedPassword = localStorage.getItem("teacherPassword");
+function loginTeacher() {
 
-if(email === "" || password === ""){
-alert("Enter email and password");
-return;
+    let email = document.getElementById("loginEmail").value;
+    let password = document.getElementById("loginPassword").value;
+
+    if(email === "" || password === ""){
+        alert("Enter Email and Password");
+        return;
+    }
+
+    
+
+    // Hide Login UI
+    // document.getElementById("teacherTitle").style.display = "none";
+    document.getElementById("loginForm").style.display = "none";
+    document.getElementById("registerForm").style.display = "none";
+
+        document.querySelector(".teacherBox").classList.add("loggedIn");
+
+    // Show Dashboard
+    document.getElementById("teacherDashboard").style.display = "block";
+
+    document.getElementById("teacherWelcome").innerHTML =
+    "Hello, " + email;
 }
 
-if(savedEmail === null){
-alert("No teacher account registered yet");
-return;
-}
+function logoutTeacher(){
 
-if(email === savedEmail && password === savedPassword){
+    document.getElementById("teacherDashboard").style.display = "none";
 
-alert("Login successful");
-closeTeacherLogin();
+    document.getElementById("teacherTitle").style.display = "block";
+    document.getElementById("loginForm").style.display = "block";
 
-}else{
+    document.getElementById("loginEmail").value = "";
+    document.getElementById("loginPassword").value = "";
 
-alert("Incorrect email or password");
-
-}
+    document.querySelector(".teacherBox").classList.remove("loggedIn");
 }
 
 
