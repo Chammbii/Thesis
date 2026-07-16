@@ -1,1264 +1,1882 @@
 
 
-function createVoiceBubble(){
-  let bubble = document.getElementById("interactiveVoiceBubble");
-  if (bubble) return bubble;
 
-  bubble = document.createElement("div");
-  bubble.id = "interactiveVoiceBubble";
-  bubble.style.position = "fixed";
-  bubble.style.bottom = "25px";
-  bubble.style.left = "50%";
-  bubble.style.transform = "translateX(-50%) translateY(0)";
-  bubble.style.padding = "14px 18px";
-  bubble.style.background = "rgba(255,255,255,0.95)";
-  bubble.style.border = "2px solid #5c73ff";
-  bubble.style.borderRadius = "24px";
-  bubble.style.boxShadow = "0 8px 20px rgba(0,0,0,0.18)";
-  bubble.style.color = "#222";
-  bubble.style.fontSize = "16px";
-  bubble.style.fontWeight = "600";
-  bubble.style.maxWidth = "90%";
-  bubble.style.textAlign = "center";
-  bubble.style.zIndex = "9999";
-  bubble.style.opacity = "0";
-  bubble.style.transition = "opacity 0.22s ease, transform 0.22s ease";
-  bubble.setAttribute("aria-live", "polite");
-  bubble.setAttribute("role", "status");
+// ======================================================
+// QUIZLAND ADVENTURE
+// SCRIPT.JS
+// ======================================================
 
-  document.body.appendChild(bubble);
-  return bubble;
-}
+// ---------- HOME ----------
+const homeScreen = document.getElementById("homeScreen");
+const profileScreen = document.getElementById("profileScreen");
+const menuScreen = document.getElementById("menuScreen");
 
-function showVoiceBubble(text){
-  let bubble = createVoiceBubble();
-  bubble.innerText = text;
-  bubble.style.opacity = "1";
-  bubble.style.transform = "translateX(-50%) translateY(0)";
+// ---------- BUTTONS ----------
+const startBtn = document.getElementById("startBtn");
+const continueBtn = document.getElementById("continueBtn");
+const backHome = document.getElementById("backHome");
+const teacherBtn = document.getElementById("teacherBtn");
+const teacherScreen = document.getElementById("teacherScreen");
+const teacherLoginForm = document.getElementById("teacherLoginForm");
+const teacherEmail = document.getElementById("teacherEmail");
+const teacherPassword = document.getElementById("teacherPassword");
+const teacherConfirmPassword = document.getElementById("teacherConfirmPassword");
+const teacherFullName = document.getElementById("teacherFullName");
+const teacherError = document.getElementById("teacherError");
+const teacherBackHome = document.getElementById("teacherBackHome");
+const teacherToggleMode = document.getElementById("teacherToggleMode");
+const teacherFormTitle = document.getElementById("teacherFormTitle");
+const teacherFormSubtitle = document.getElementById("teacherFormSubtitle");
+const teacherSwitchText = document.getElementById("teacherSwitchText");
+const teacherSubmitBtn = document.getElementById("teacherSubmitBtn");
+const teacherDashboard = document.getElementById("teacherDashboard");
+const teacherNameDisplay = document.getElementById("teacherNameDisplay");
+const teacherCompletedLessons = document.getElementById("teacherCompletedLessons");
+const teacherProgressCategories = document.getElementById("teacherProgressCategories");
+const teacherLogoutBtn = document.getElementById("teacherLogoutBtn");
+const teacherDashboardHomeBtn = document.getElementById("teacherDashboardHomeBtn");
+const teacherStudentProgressTable = document.getElementById("teacherStudentProgressTable");
 
-  if (bubble.hideTimeout){
-    clearTimeout(bubble.hideTimeout);
-  }
+const settingsBtn = document.getElementById("settingsBtn");
+const settingsModal = document.getElementById("settingsModal");
+const closeModal = document.querySelector(".close");
+const fullscreenToggle = document.getElementById("fullscreenToggle");
+const bgMusicToggle = document.getElementById("bgMusicToggle");
+const bgMusicVolume = document.getElementById("bgMusicVolume");
+const sfxToggle = document.getElementById("sfxToggle");
+const sfxVolume = document.getElementById("sfxVolume");
+const voiceNarrationToggle = document.getElementById("voiceNarrationToggle");
+const notificationBox = document.getElementById("notificationBox");
+const bgMusicElement = document.getElementById("bgMusic");
+const popSound = document.getElementById("popSound");
+const bgAudio = bgMusicElement || null;
 
-  bubble.hideTimeout = setTimeout(() => {
-    bubble.style.opacity = "0";
-    bubble.style.transform = "translateX(-50%) translateY(-8px)";
-  }, 4200);
-}
+// ---------- STUDENT ----------
+const studentName = document.getElementById("studentName");
 
-let interactiveSpeechUtterance = null;
+// ---------- AVATARS ----------
+const avatars = document.querySelectorAll(".avatar-card");
 
-function findKidVoice(){
-  let voices = window.speechSynthesis.getVoices();
-  if (!voices || !voices.length) return null;
+// ---------- LESSON ----------
+const lessonScreen = document.getElementById("lessonScreen");
+const lessonButtons = document.querySelectorAll(".lesson-btn");
+const progressFill = document.getElementById("progressFill");
+const lessonTitle = document.getElementById("lessonTitle");
+const lessonImage = document.getElementById("lessonImage");
+const lessonLetter = document.getElementById("lessonLetter");
+const lessonWord = document.getElementById("lessonWord");
+const lessonFeedback = document.getElementById("lessonFeedback");
+const voiceBtn = document.getElementById("voiceBtn");
+const previousLesson = document.getElementById("previousLesson");
+const nextLesson = document.getElementById("nextLesson");
+const lessonHomeBtn = document.getElementById("lessonHomeBtn");
+const languageModal = document.getElementById("languageModal");
+const langEnBtn = document.getElementById("langEnBtn");
+const langTlBtn = document.getElementById("langTlBtn");
+const langCancelBtn = document.getElementById("langCancelBtn");
 
-  let matches = voices.filter(v => {
-    const name = v.name.toLowerCase();
-    const lang = v.lang.toLowerCase();
-    return (name.includes("child") || name.includes("kid") || name.includes("young") || name.includes("grandchild") || name.includes("girl") || name.includes("boy")) && lang.startsWith("en");
-  });
+let selectedAvatar = null;
 
-  if (matches.length) return matches[0];
+// ======================================================
+// SCREEN NAVIGATION
+// ======================================================
 
-  matches = voices.filter(v => v.lang.toLowerCase().startsWith("en"));
-  return matches.length ? matches[0] : null;
-}
+function hideAllScreens() {
 
-function speak(text){
-  if (!text || typeof text !== "string") return;
+    document.querySelectorAll(".screen").forEach(screen => {
 
-  showVoiceBubble(text);
+        screen.classList.remove("active");
 
-  if (!window.speechSynthesis) return;
-
-  if (interactiveSpeechUtterance) {
-    window.speechSynthesis.cancel();
-    interactiveSpeechUtterance = null;
-  }
-
-  let utterance = new SpeechSynthesisUtterance(text);
-  utterance.rate = 0.78;
-  utterance.pitch = 1.2;
-  utterance.volume = 1;
-  utterance.lang = "en-US";
-
-  let kidVoice = findKidVoice();
-  if (kidVoice) {
-    utterance.voice = kidVoice;
-  }
-
-  interactiveSpeechUtterance = utterance;
-  window.speechSynthesis.speak(utterance);
-
-  utterance.onend = () => {
-    interactiveSpeechUtterance = null;
-  };
-}
-
-function openLesson(name){
-
-speak("Let's learn " + name);
+    });
 
 }
 
-/*quiz function */
-function startQuiz(){
+function showScreen(screen) {
 
-document.getElementById("quizBoard").style.display="block";
+    hideAllScreens();
 
-speak("Let's start the quiz");
-
-currentTopic = topics[Math.floor(Math.random()*topics.length)];
-
-questionIndex = 0;
-
-loadQuestion();
+    screen.classList.add("active");
 
 }
 
-//play button function
-function startPlaytime(){
-  console.log("Playtime started!");
+// ======================================================
+// START BUTTON
+// ======================================================
 
-  // Example: hide menu, show play screen
-  document.getElementById("menuScreen").style.display = "none";
-  document.getElementById("playScreen").style.display = "block";
+startBtn.addEventListener("click", () => {
 
-  // Optional: speak
-  speak("Let's play!");
-} 
+    showScreen(profileScreen);
 
-// open techer
-function openTeacherLogin(){
+});
 
-document.getElementById("teacherOverlay").style.display="flex";
+// ======================================================
+// TEACHER LOGIN BUTTON
+// ======================================================
 
-}
+let teacherMode = "login";
+let currentTeacherUsername = "Teacher";
 
-function closeTeacherLogin(){
+teacherBtn.addEventListener("click", () => {
 
-document.getElementById("teacherOverlay").style.display="none";
-
-}
-
-function showRegister(){
-
-document.getElementById("loginForm").style.display="none";
-document.getElementById("registerForm").style.display="block";
-
-}
-
-function showLogin(){
-
-document.getElementById("registerForm").style.display="none";
-document.getElementById("loginForm").style.display="block";
-
-}
-
-function registerTeacher(){
-
-let email = document.getElementById("regEmail").value.trim();
-let password = document.getElementById("regPassword").value.trim();
-let repeat = document.getElementById("repeatPassword").value.trim();
-
-let pattern = /^(?=.*[A-Z])(?=.*[0-9]).+$/;
-
-
-if(email === "" || password === ""){
-alert("Enter email and password");
-return;
-}
-
-if(!pattern.test(password)){
-alert("Password must contain uppercase letter and number");
-return;
-}
-
-if(password !== repeat){
-alert("Passwords do not match");
-return;
-}
-
-localStorage.setItem("teacherEmail", email);
-localStorage.setItem("teacherPassword", password);
-
-alert("Teacher account created");
-
-showLogin();
-
-}
-
-
-// loginteacher 
-function loginTeacher() {
-
-    let email = document.getElementById("loginEmail").value;
-    let password = document.getElementById("loginPassword").value;
-
-    if(email === "" || password === ""){
-        alert("Enter Email and Password");
+    const sessionEmail = getTeacherSession();
+    if (sessionEmail) {
+        restoreTeacherSession();
         return;
     }
 
-    
-
-    // Hide Login UI
-    // document.getElementById("teacherTitle").style.display = "none";
-    document.getElementById("loginForm").style.display = "none";
-    document.getElementById("registerForm").style.display = "none";
-
-        document.querySelector(".teacherBox").classList.add("loggedIn");
-
-    // Show Dashboard
-    document.getElementById("teacherDashboard").style.display = "block";
-
-    document.getElementById("teacherWelcome").innerHTML =
-    "Hello, " + email;
-}
-
-function logoutTeacher(){
-
-    document.getElementById("teacherDashboard").style.display = "none";
-
-    document.getElementById("teacherTitle").style.display = "block";
-    document.getElementById("loginForm").style.display = "block";
-
-    document.getElementById("loginEmail").value = "";
-    document.getElementById("loginPassword").value = "";
-
-    document.querySelector(".teacherBox").classList.remove("loggedIn");
-}
-
-
-
-
-// settingpanel
-// SETTINGS STATE (GLOBAL)
-let settingsState = {
-  music: true,
-  sound: true,
-  fullscreen: false,
-  volume: 0.5
-};
-
-// OPEN / CLOSE
-function openSettings(){
-  document.getElementById("settingsPanel").style.display = "block";
-}
-
-function closeSettings(){
-  document.getElementById("settingsPanel").style.display = "none";
-}
-
-function continueGame(){
-  closeSettings();
-}
-
-// MUSIC
-function toggleMusic(){
-  let btn = document.getElementById("musicBtn");
-
-  settingsState.music = !settingsState.music;
-
-  if(settingsState.music){
-    bgMusic.play();
-    btn.innerText = "ON";
-    btn.classList.add("on");
-    btn.classList.remove("off");
-  }else{
-    bgMusic.pause();
-    btn.innerText = "OFF";
-    btn.classList.add("off");
-    btn.classList.remove("on");
-  }
-}
-// voulume
-function changeVolume(value){
-  settingsState.volume = value;
-
-  // apply to background music
-  bgMusic.volume = value;
-
-  // optional: also control speech volume
-  console.log("Volume:", value);
-}
-
-// SOUND
-function toggleSound(){
-  let btn = document.getElementById("soundBtn");
-
-  settingsState.sound = !settingsState.sound;
-
-  btn.innerText = settingsState.sound ? "ON" : "OFF";
-  btn.classList.toggle("on");
-  btn.classList.toggle("off");
-}
-
-// FULLSCREEN
-function toggleFullscreen(){
-  let btn = document.getElementById("fullscreenBtn");
-
-  if(!document.fullscreenElement){
-    document.documentElement.requestFullscreen();
-    btn.innerText = "ON";
-  }else{
-    document.exitFullscreen();
-    btn.innerText = "OFF";
-  }
-}
-
-// popsound
-document.addEventListener("click", function(e){
-
-  const sound = document.getElementById("popSound");
-
-  // 🔊 play only if enabled
-  if(settingsState.sound){
-    sound.currentTime = 0;
-    sound.play();
-  }
-
-
-  // ✨ pop effect ALWAYS
-  const pop = document.createElement("div");
-  pop.className = "clickPop";
-
-  pop.style.left = e.clientX + "px";
-  pop.style.top = e.clientY + "px";
-
-  document.body.appendChild(pop);
-
-  setTimeout(() => {
-    pop.remove();
-  }, 300);
+    setTeacherMode("login");
+    showScreen(teacherScreen);
+    clearTeacherError();
+    teacherLoginForm.reset();
 
 });
 
-// bakground audio
-let bgMusic = document.getElementById("bgMusic");
+teacherBackHome.addEventListener("click", () => {
 
-// play after first click
-document.body.addEventListener("click", function(){
-    bgMusic.play();
-}, { once: true });
+    showScreen(homeScreen);
+    clearTeacherError();
+    setTeacherMode("login");
 
-// set volume 
-bgMusic.volume = 0.5;
+});
 
-// setting panel
-// (EASY TO EXPAND)
-let settings = {
-  volume: 0.5,
-  fullscreen: false
-};
+teacherToggleMode.addEventListener("click", () => {
 
+    setTeacherMode(teacherMode === "login" ? "register" : "login");
+    clearTeacherError();
+    teacherLoginForm.reset();
 
+});
 
+teacherLoginForm.addEventListener("submit", (event) => {
 
-
-
-
-
-
-// OPEN PLAYTIME DASHBOARD
-function startPlaytime(){
-  document.getElementById("playDashboard").style.display = "block";
-  speak("Let's play!");
-}
-
-function closePlaytime(){
-  document.getElementById("playDashboard").style.display = "none";
-}
-
-// START GAME
-let currentGame = "";
-
-function startGame(type){
-  currentGame = type;
-
-  document.getElementById("playDashboard").style.display = "none";
-  document.getElementById("playGame").style.display = "block";
-
-  generateGame();
-}
-
-// CLOSE GAME
-function closeGame(){
-  document.getElementById("playGame").style.display = "none";
-}
-
-// funtion generategame
-
-function generateGame(){
-
-  let question = "";
-  let choices = [];
-  let correct = "";
-
-  function getChoices(fullList, correctItem, totalChoices = 4){
-  let choices = [correctItem];
-
-  let filtered = fullList.filter(item => {
-    if(typeof item === "object"){
-      return item.name !== correctItem.name;
-    }
-    return item !== correctItem;
-  });
-
-  shuffle(filtered);
-
-  while(choices.length < totalChoices){
-    choices.push(filtered.pop());
-  }
-
-  return shuffle(choices);
-}
-
-  // COLOR GAME (10 colors)
-  if(currentGame === "color"){
-    let colors = [
-      {name:"Red", value:"red"},
-      {name:"Blue", value:"blue"},
-      {name:"Green", value:"green"},
-      {name:"Yellow", value:"yellow"},
-      {name:"Orange", value:"orange"},
-      {name:"Purple", value:"purple"},
-      {name:"Pink", value:"pink"},
-      {name:"Brown", value:"brown"},
-      {name:"Black", value:"black"},
-      {name:"Gray", value:"gray"}
-    ];
-
-    correct = colors[Math.floor(Math.random()*colors.length)];
-    question = " Tap the color: " + correct.name;
-
-    choices = getChoices(colors, correct);
-  }
-
-  // NUMBER GAME (1–10)
-  if(currentGame === "number"){
-    let numbers = ["1","2","3","4","5","6","7","8","9","10"];
-
-    correct = numbers[Math.floor(Math.random()*numbers.length)];
-    question = " Tap the number: " + correct;
-
-    choices = getChoices(numbers, correct);
-  }
-
-  //  ALPHABET GAME (A–Z)
-  if(currentGame === "alphabet"){
-    let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
-
-    correct = letters[Math.floor(Math.random()*letters.length)];
-    question = "Tap the letter: " + correct;
-
-   choices = getChoices(letters, correct);
-  }
-
-  //  SHAPE GAME (FIXED)
-  if(currentGame === "shape"){
-    let shapes = [
-      {name:"Circle", symbol:"⬤"},
-      {name:"Square", symbol:"■"},
-      {name:"Triangle", symbol:"▲"},
-      {name:"Star", symbol:"⭐"},
-      {name:"Heart", symbol:"❤️"},
-      {name:"Diamond", symbol:"◆"},
-      {name:"Rectangle", symbol:"▬"},
-      {name:"Oval", symbol:"⬭"},
-      {name:"Pentagon", symbol:"⬟"},
-      {name:"Hexagon", symbol:"⬢"}
-    ];
-
-    correct = shapes[Math.floor(Math.random()*shapes.length)];
-    question = " Tap the shape: " + correct.name;
-
-   choices = getChoices(shapes, correct);
-  }
-
-  document.getElementById("gameQuestion").innerText = question;
-
-  let container = document.getElementById("gameChoices");
-  container.innerHTML = "";
-
-
-  
-  choices.forEach(choice => {
-
-    let btn = document.createElement("button");
-
-    // 🎨 COLOR STYLE
-    if(currentGame === "color"){
-      btn.style.background = choice.value;
-      btn.innerText = "";
-      btn.style.width = "100px";
-      btn.style.height = "100px";
+    event.preventDefault();
+    if (teacherMode === "login") {
+        handleTeacherLogin();
+    } else {
+        handleTeacherRegister();
     }
 
-    // 🔺 SHAPE STYLE
-    else if(currentGame === "shape"){
-      btn.innerText = choice.symbol;
-      btn.style.fontSize = "50px";
+});
+
+teacherLogoutBtn.addEventListener("click", () => {
+
+    currentTeacherUsername = "Teacher";
+    clearTeacherSession();
+    showScreen(homeScreen);
+    showNotification("Teacher logged out successfully.");
+
+});
+
+teacherDashboardHomeBtn.addEventListener("click", () => {
+
+    showScreen(homeScreen);
+    showNotification("You are still logged in. Use Logout to end your session.");
+
+});
+
+function clearTeacherError(){
+    if (teacherError) {
+        teacherError.textContent = "";
+    }
+}
+
+function setTeacherMode(mode){
+    teacherMode = mode;
+
+    const isRegister = mode === "register";
+
+    teacherFormTitle.textContent = isRegister ? "Teacher Register" : "Teacher Login";
+    teacherFormSubtitle.textContent = isRegister
+        ? "Create a new account to manage lessons."
+        : "Enter your teacher credentials to access the dashboard.";
+    teacherSubmitBtn.textContent = isRegister ? "Register" : "Login";
+    teacherSwitchText.textContent = isRegister
+        ? "Already have an account?"
+        : "Don't have an account?";
+    teacherToggleMode.textContent = isRegister ? "Login" : "Register";
+
+    teacherConfirmPassword.classList.toggle("teacher-hidden", !isRegister);
+    teacherFullName.classList.toggle("teacher-hidden", !isRegister);
+}
+
+function getTeacherUsers(){
+    const raw = localStorage.getItem("teacherUsers");
+    try {
+        return raw ? JSON.parse(raw) : {};
+    } catch (error) {
+        return {};
+    }
+}
+
+function saveTeacherUsers(users){
+    localStorage.setItem("teacherUsers", JSON.stringify(users));
+}
+
+function saveTeacherSession(email){
+    localStorage.setItem("teacherSession", email);
+}
+
+function clearTeacherSession(){
+    localStorage.removeItem("teacherSession");
+}
+
+function getTeacherSession(){
+    return localStorage.getItem("teacherSession");
+}
+
+function restoreTeacherSession(){
+    const email = getTeacherSession();
+    if (!email) {
+        return false;
     }
 
-    else{
-      btn.innerText = choice;
+    const users = getTeacherUsers();
+    const user = users[email];
+    if (!user) {
+        clearTeacherSession();
+        return false;
     }
 
-    btn.onclick = () => {
+    currentTeacherUsername = user.fullName || user.email;
+    showTeacherDashboard();
+    return true;
+}
 
-      let isCorrect = false;
+function handleTeacherRegister(){
+    const email = teacherEmail.value.trim().toLowerCase();
+    const password = teacherPassword.value;
+    const confirmPassword = teacherConfirmPassword.value;
+    const fullName = teacherFullName.value.trim();
 
-      if(currentGame === "color"){
-        isCorrect = choice.name === correct.name;
-      }
-      else if(currentGame === "shape"){
-        isCorrect = choice.name === correct.name;
-      }
-      else{
-        isCorrect = choice === correct;
-      }
+    if (!email || !password || !confirmPassword || !fullName) {
+        setTeacherError("Please fill in all fields.");
+        return;
+    }
 
-      if(isCorrect){
-        speak("Wow, you’re so smart!", "You did it!");
-        btn.style.background = "lime";
-        setTimeout(generateGame, 900);
-      }else{
-        speak("That’s okay, let’s try again!");
-        btn.style.background = "red";
-      }
+    if (password !== confirmPassword) {
+        setTeacherError("Passwords do not match.");
+        return;
+    }
 
+    const users = getTeacherUsers();
+    const userKey = email;
+
+    if (users[userKey]) {
+        setTeacherError("This email is already registered.");
+        return;
+    }
+
+    users[userKey] = {
+        email: email,
+        fullName: fullName,
+        password: password
     };
 
-    container.appendChild(btn);
-  });
-
-  speak(question);
+    saveTeacherUsers(users);
+    setTeacherMode("login");
+    showScreen(teacherScreen);
+    teacherEmail.value = email;
+    teacherPassword.value = "";
+    teacherConfirmPassword.value = "";
+    teacherFullName.value = "";
+    teacherEmail.focus();
+    showNotification("Registration successful. Please login with your new email.");
 }
 
-// SHUFFLE FUNCTION
-function shuffle(arr){
-  return arr.sort(() => Math.random() - 0.5);
+function handleTeacherLogin(){
+    const email = teacherEmail.value.trim().toLowerCase();
+    const password = teacherPassword.value;
+
+    if (!email || !password) {
+        setTeacherError("Please enter both email and password.");
+        return;
+    }
+
+    const users = getTeacherUsers();
+    const user = users[email];
+
+    if (!user || user.password !== password) {
+        setTeacherError("Invalid email or password.");
+        return;
+    }
+
+    currentTeacherUsername = user.fullName || user.email;
+    saveTeacherSession(email);
+    showTeacherDashboard();
+    showNotification("Welcome back, " + currentTeacherUsername + "!");
 }
 
-
-// QUIZ SYSTEM (
-
-
-// TOPICS
-let topics = ["Alphabet","Numbers","Colors","Shapes"];
-
-let currentTopic;
-let questionIndex = 0;
-let score = 0;
-let difficulty = "easy";
-
-
-// QUIZ DATA (ADAPTIVE)
-
-let quizData = {
-
-Alphabet:{
-easy:[
-{q:"What letter comes after A?",a:["B","F","E"],c:"B"},
-{q:"What letter comes after B?",a:["C","K","H"],c:"C"},
-{q:"What letter comes after C?",a:["D","A","F"],c:"D"}
-],
-medium:[
-{q:"What letter comes after D?",a:["E","F","G"],c:"E"},
-{q:"What letter comes after F?",a:["G","D","I"],c:"G"},
-{q:"What letter comes after H?",a:["I","E","M"],c:"I"}
-],
-hard:[
-{q:"What letter comes before D?",a:["B","C","E"],c:"C"},
-{q:"What letter comes before G?",a:["E","F","H"],c:"F"},
-{q:"What letter is between H and J?",a:["A","I","J"],c:"I"}
-]
-},
-
-Numbers:{
-easy:[ 
-{q:"What number comes after 1?",a:["2","4","6"],c:"2"},
-{q:"What number comes after 2?",a:["3","1","4"],c:"3"},
-{q:"What number comes after 3?",a:["8","2","4"],c:"4"}
-],
-medium:[
-{q:"What number comes after 5?",a:["6","4","10"],c:"6"},
-{q:"What number comes after 7?",a:["8","6","5"],c:"8"},
-{q:"What number comes after 9?",a:["9","8","10"],c:"10"}
-],
-hard:[
-{q:"What number comes before 5?",a:["3","4","6"],c:"4"},
-{q:"What number comes before 10?",a:["8","9","11"],c:"9"},
-{q:"What number is between 6 and 8?",a:["5","7","9"],c:"7"}
-]
-},
-
-Colors:{
-easy:[
-{q:"What color is an apple?",a:["Red","Blue","Green"],c:"Red"},
-{q:"What color is the sky?",a:["Blue","Yellow","Red"],c:"Blue"},
-{q:"What color is a banana?",a:["Yellow","Purple","Blue"],c:"Yellow"}
-],
-medium:[
-{q:"What color is grass?",a:["Green","Black","Pink"],c:"Green"},
-{q:"What color is coal?",a:["Black","White","Orange"],c:"Black"},
-{q:"What color is milk?",a:["White","Black","Purple"],c:"White"}
-],
-hard:[
-{q:"What color is chocolate?",a:["Brown","Pink","Blue"],c:"Brown"},
-{q:"What color is a frog?",a:["Green","Orange","Black"],c:"Green"},
-{q:"What color is a carrot?",a:["Orange","Blue","Black"],c:"Orange"}
-]
-},
-
-Shapes:{
-easy:[
-{q:"Which shape is round?",a:["Circle","Square","Triangle"],c:"Circle"},
-{q:"Which shape has 3 sides?",a:["Triangle","Circle","Square"],c:"Triangle"},
-{q:"Which shape has 4 equal sides?",a:["Square","Circle","Star"],c:"Square"}
-],
-medium:[
-{q:"Which shape looks like a box?",a:["Rectangle","Circle","Triangle"],c:"Rectangle"},
-{q:"Which shape has no corners?",a:["Circle","Square","Triangle"],c:"Circle"},
-{q:"Which shape looks like a star?",a:["Star","Square","Circle"],c:"Star"}
-],
-hard:[
-{q:"Which shape has 5 sides?",a:["Pentagon","Circle","Triangle"],c:"Pentagon"},
-{q:"Which shape has 6 sides?",a:["Hexagon","Square","Circle"],c:"Hexagon"},
-{q:"Which shape is like a heart?",a:["Heart","Triangle","Square"],c:"Heart"}
-]
+function setTeacherError(message){
+    if (teacherError) {
+        teacherError.textContent = message;
+    }
 }
 
-};
-
-
-// START QUIZ
-
-function startQuiz(){
-
-  difficulty = "easy";
-  score = 0;
-  questionIndex = 0;
-
-  currentTopic = topics[Math.floor(Math.random()*topics.length)];
-
-  document.getElementById("quizBoard").style.display="block";
-
-  speak("Let's quiz! We'll start easy.");
-  loadQuestion();
+function getTeacherSessionEmail() {
+    return getTeacherSession();
 }
 
+function getProgressNamespace() {
+    const email = getTeacherSessionEmail();
+    return email ? `teacher:${email}` : "anonymous";
+}
 
-// LOAD QUESTION
+function getNamespacedKey(suffix) {
+    return `studentProgress_${getProgressNamespace()}_${suffix}`;
+}
 
-function loadQuestion(){
+function getStudentRecords() {
+    const key = getNamespacedKey("studentRecords");
+    return JSON.parse(localStorage.getItem(key)) || [];
+}
 
-  let levelQuestions = quizData[currentTopic][difficulty];
+function saveStudentRecords(records) {
+    const key = getNamespacedKey("studentRecords");
+    localStorage.setItem(key, JSON.stringify(records));
+}
 
-  if(!levelQuestions){
-    console.error("No questions found!");
-    return;
-  }
+function updateCurrentStudentRecord() {
+    const student = localStorage.getItem("studentName") || "Unknown";
 
-  let data = levelQuestions[questionIndex];
+    if (!student) return;
 
-  if(!data){
-    console.error("Question missing!");
-    return;
-  }
+    const avatarIndex = Number(localStorage.getItem("avatar")) || 1;
+    const completedLessons = Number(localStorage.getItem(getNamespacedKey("completedLessons"))) || 0;
+    const lessonProgress = JSON.parse(localStorage.getItem(getNamespacedKey("lessonProgress"))) || {};
+    const categoriesDone = Object.keys(lessonProgress).length;
+    const totalCategories = Object.keys(lessons).length;
+    const progressPercent = totalCategories > 0
+        ? Math.round((categoriesDone / totalCategories) * 100)
+        : 0;
 
-  document.getElementById("quizTopic").innerText = currentTopic + " Quiz";
-  document.getElementById("questionText").innerText = data.q;
+// Per-student quiz summary (prevents everyone showing same accuracy)
+    const lastQuizScoreKey = getNamespacedKey(`lastQuizScore_${encodeURIComponent(student)}`);
+    const lastQuizTotalKey = getNamespacedKey(`lastQuizTotal_${encodeURIComponent(student)}`);
 
-  document.getElementById("difficultyLabel").innerText =
-    "Level: " + difficulty.toUpperCase();
 
-  document.getElementById("quizProgress").innerText =
-    "Question " + (questionIndex+1) + " / " + levelQuestions.length;
+    const lastQuizScore = Number(localStorage.getItem(lastQuizScoreKey)) || 0;
+    const lastQuizTotal = Number(localStorage.getItem(lastQuizTotalKey)) || 0;
 
-  let answersDiv = document.getElementById("answers");
-  answersDiv.innerHTML = "";
+    const accuracy = lastQuizTotal > 0
+        ? Math.round((lastQuizScore / lastQuizTotal) * 100)
+        : 0;
 
-  let shuffledAnswers = shuffle([...data.a]);
 
-shuffledAnswers.forEach(choice => {
-    let btn = document.createElement("button");
-    btn.innerText = choice;
+    const records = getStudentRecords();
+    let record = records.find(r => r.name === student);
 
-    btn.onclick = () => checkAnswer(btn, data.c);
+    if (!record) {
+        record = {
+            name: student,
+            avatar: avatarIndex,
+            completedLessons,
+            categoriesDone,
+            progressPercent,
+            accuracy,
+            updatedAt: Date.now()
+        };
+        records.push(record);
+    } else {
+        record.avatar = avatarIndex;
+        record.completedLessons = completedLessons;
+        record.categoriesDone = categoriesDone;
+        record.progressPercent = progressPercent;
+        record.accuracy = accuracy;
+        record.updatedAt = Date.now();
+    }
 
-    answersDiv.appendChild(btn);
+    saveStudentRecords(records);
+}
+
+function renderTeacherStudentProgress() {
+    if (!teacherStudentProgressTable) return;
+    const tbody = teacherStudentProgressTable.querySelector("tbody");
+    tbody.innerHTML = "";
+    const records = getStudentRecords();
+    const totalCategories = Object.keys(lessons).length;
+
+    records.sort((a, b) => b.updatedAt - a.updatedAt);
+
+    records.forEach(record => {
+        const row = document.createElement("tr");
+
+        const nameTd = document.createElement("td");
+        nameTd.textContent = record.name;
+
+        const avatarTd = document.createElement("td");
+        const img = document.createElement("img");
+        img.src = `avatar00${record.avatar}.png`;
+        img.alt = `Avatar ${record.avatar}`;
+        img.className = "student-avatar-cell";
+        avatarTd.appendChild(img);
+
+        const progressTd = document.createElement("td");
+        progressTd.textContent = `${record.categoriesDone}/${totalCategories} (${record.progressPercent}%)`;
+
+        const accuracyTd = document.createElement("td");
+        accuracyTd.textContent = `${record.accuracy}%`;
+
+        const actionsTd = document.createElement("td");
+        const removeBtn = document.createElement("button");
+        removeBtn.textContent = "Remove";
+        removeBtn.className = "remove-btn";
+        removeBtn.type = "button";
+        removeBtn.addEventListener("click", () => {
+            removeStudentRecord(record.name);
+            renderTeacherStudentProgress();
+            showNotification(`${record.name} has been removed.`);
+        });
+        actionsTd.appendChild(removeBtn);
+        row.appendChild(nameTd);
+        row.appendChild(avatarTd);
+        row.appendChild(progressTd);
+        row.appendChild(accuracyTd);
+        row.appendChild(actionsTd);
+        tbody.appendChild(row);
+    });
+}
+
+function removeStudentRecord(studentName) {
+    const records = getStudentRecords().filter(record => record.name !== studentName);
+    saveStudentRecords(records);
+}
+
+function showTeacherDashboard(){
+    showScreen(teacherDashboard);
+    teacherNameDisplay.textContent = currentTeacherUsername;
+
+    const completed = Number(localStorage.getItem(getNamespacedKey("completedLessons"))) || 0;
+    teacherCompletedLessons.textContent = completed;
+
+    const progress = JSON.parse(localStorage.getItem(getNamespacedKey("lessonProgress"))) || {};
+    teacherProgressCategories.textContent = Object.keys(progress).length;
+
+    renderTeacherStudentProgress();
+}
+
+// ======================================================
+// CONTINUE BUTTON
+// ======================================================
+
+continueBtn.addEventListener("click", () => {
+
+    const name = studentName.value.trim();
+
+    if (name === "") {
+
+        showNotification("Please enter your name.");
+
+        studentName.focus();
+
+        return;
+
+    }
+
+    localStorage.setItem("studentName", name);
+
+    if (selectedAvatar === null) {
+
+        showNotification("Please select an avatar.");
+        return;
+
+    }
+
+    localStorage.setItem("avatar", selectedAvatar);
+
+    updateCurrentStudentRecord();
+
+    showScreen(menuScreen);
+
+    setTimeout(() => {
+
+        showNotification("Welcome, " + name + "! Let's start learning!");
+
+    }, 300);
+
 });
-  speak(data.q);
-}
 
+// ======================================================
+// BACK HOME
+// ======================================================
 
-// CHECK ANSWER
+backHome.addEventListener("click", () => {
 
-function checkAnswer(btn, correct){
+    showScreen(homeScreen);
 
-  if(btn.innerText === correct){
+});
 
-    btn.classList.add("correct");
+// ======================================================
+// SETTINGS
+// ======================================================
 
-    let praises = ["Great job!", "Awesome!", "Nice!", "You're amazing!"];
-    speak(praises[Math.floor(Math.random()*praises.length)]);
+settingsBtn.addEventListener("click", () => {
 
-    score++;
+    settingsModal.style.display = "flex";
 
-    setTimeout(nextQuestion, 800);
+});
 
-  } else {
+closeModal.addEventListener("click", () => {
 
-    btn.classList.add("wrong");
-    let encouragement = ["You can do it!", "Try again, you're close!", "Keep going!", "Nice try! Let's try that again."];
-    speak(encouragement[Math.floor(Math.random()*encouragement.length)]);
+    settingsModal.style.display = "none";
 
-  }
-}
+});
 
-// NEXT QUESTION + ADAPTIVE
+window.addEventListener("click", (e) => {
 
-function nextQuestion(){
+    if (e.target === settingsModal) {
 
-  questionIndex++;
+        settingsModal.style.display = "none";
 
-  let levelQuestions = quizData[currentTopic][difficulty];
-
-  if(questionIndex >= levelQuestions.length){
-
-    if(score >= 2 && difficulty === "easy"){
-      difficulty = "medium";
-      speak("Level up! Medium!");
-    }
-    else if(score >= 4 && difficulty === "medium"){
-      difficulty = "hard";
-      speak("Wow! Hard level!");
-    }
-    else{
-      speak("You finished! Great job!");
-
-      showResult();
-      return;
     }
 
-    questionIndex = 0;
-  }
+});
 
-  loadQuestion();
+
+// FULLSCREENNNNNNNNNNN
+
+
+function updateFullscreenCheckbox() {
+
+    if (fullscreenToggle) {
+
+        fullscreenToggle.checked = !!document.fullscreenElement;
+
+    }
+
 }
 
+function setFullscreen(enabled) {
 
-// CLOSE QUIZ
+    if (!fullscreenToggle) return;
 
-function closeQuiz(){
-  document.getElementById("quizBoard").style.display="none";
+    if (enabled) {
+
+        if (!document.fullscreenElement) {
+
+            document.documentElement.requestFullscreen().catch((err) => {
+
+                console.warn("Fullscreen request failed:", err);
+
+                fullscreenToggle.checked = false;
+
+                localStorage.setItem("fullscreenEnabled", "false");
+
+            });
+
+        }
+
+    } else {
+
+        if (document.fullscreenElement) {
+
+            document.exitFullscreen().catch((err) => {
+
+                console.warn("Fullscreen exit failed:", err);
+
+            });
+
+        }
+
+    }
+
 }
 
-function showResult(){
+if (fullscreenToggle) {
 
-  document.getElementById("quizBoard").style.display = "none";
+    fullscreenToggle.addEventListener("change", () => {
 
-  let message = "";
+        const enabled = fullscreenToggle.checked;
 
-  if(score <= 2){
-    message = "😊 Good try!";
-  } else if(score <= 4){
-    message = "😃 Nice job!";
-  } else {
-    message = "🎉 Amazing!";
-  }
+        localStorage.setItem("fullscreenEnabled", enabled ? "true" : "false");
 
-  document.getElementById("resultMessage").innerText = message;
-  document.getElementById("finalScoreText").innerText = "Score: " + score;
+        setFullscreen(enabled);
 
-  document.getElementById("resultScreen").style.display = "flex";
+    });
 
-  speak(message + ". Your score is " + score);
 }
 
-function restartQuiz(){
-  document.getElementById("resultScreen").style.display = "none";
-  startQuiz();
+window.addEventListener("fullscreenchange", updateFullscreenCheckbox);
+
+function isSfxEnabled() {
+    return sfxToggle ? sfxToggle.checked : false;
 }
 
-function closeResult(){
-  document.getElementById("resultScreen").style.display = "none";
+function updateSfxVolume() {
+    if (!popSound || !sfxVolume) return;
+    popSound.volume = Number(sfxVolume.value) / 100;
 }
 
-
-// Speech and voice recognition are disabled.
-
-
-
-
-/* ALPHABET LESSON */
-
-const alphabetData = [
-{l:"A",w:"Apple",obj:"🍎"},
-{l:"B",w:"Ball",obj:"⚽"},
-{l:"C",w:"Cat",obj:"🐱"},
-{l:"D",w:"Dog",obj:"🐶"},
-{l:"E",w:"Elephant",obj:"🐘"},
-{l:"F",w:"Fish",obj:"🐟"},
-{l:"G",w:"Grapes",obj:"🍇"},
-{l:"H",w:"Hat",obj:"🎩"},
-{l:"I",w:"Ice Cream",obj:"🍦"},
-{l:"J",w:"Juice",obj:"🧃"},
-{l:"K",w:"Kite",obj:"🪁"},
-{l:"L",w:"Lion",obj:"🦁"},
-{l:"M",w:"Monkey",obj:"🐵"},
-{l:"N",w:"Notebook",obj:"📓"},
-{l:"O",w:"Orange",obj:"🍊"},
-{l:"P",w:"Pencil",obj:"✏️"},
-{l:"Q",w:"Queen",obj:"👑"},
-{l:"R",w:"Rabbit",obj:"🐰"},
-{l:"S",w:"Sun",obj:"☀️"},
-{l:"T",w:"Tiger",obj:"🐯"},
-{l:"U",w:"Umbrella",obj:"☂️"},
-{l:"V",w:"Violin",obj:"🎻"},
-{l:"W",w:"Watermelon",obj:"🍉"},
-{l:"X",w:"Xmas Tree",obj:"🎄"},
-{l:"Y",w:"Yoyo",obj:"🪀"},
-{l:"Z",w:"Zebra",obj:"🦓"}
-];
-
-let alphabetIndex = 0;
-
-/* OPEN LESSON */
-
-function openLesson(name){
-if(name === "alphabet"){
-document.getElementById("alphabetLesson").style.display="block";
-updateAlphabet();
-speak("Let's learn the alphabet!");
-}
+function isVoiceNarrationEnabled() {
+    return voiceNarrationToggle ? voiceNarrationToggle.checked : true;
 }
 
-/* UPDATE (NOW INTERACTIVE) */
+function speakText(text) {
+    return new Promise(resolve => {
+        if (!isVoiceNarrationEnabled()) {
+            resolve();
+            return;
+        }
+        speechSynthesis.cancel();
+        const speech = new SpeechSynthesisUtterance(text);
+        speech.rate = 0.95;
+        speech.pitch = 1.1;
+        speech.volume = 1;
+        speech.onend = resolve;
+        speech.onerror = resolve;
+        speechSynthesis.speak(speech);
+    });
+}
 
-function updateAlphabet(){
+function speakQuizQuestion() {
+    if (!quizQuestions.length) return;
+    const prefix = selectedLanguage === 'tl'
+        ? `Tanong ${currentQuizIndex + 1}. `
+        : `Question ${currentQuizIndex + 1}. `;
+    const text = prefix + quizQuestions[currentQuizIndex].prompt;
+    speakText(text);
+}
 
-let data = alphabetData[alphabetIndex];
+function speakQuizFeedback(isCorrect, correctAnswer) {
+    const translatedAnswer = selectedLanguage === 'tl' ? translateWord(correctAnswer) : correctAnswer;
+    return speakText(
+        isCorrect
+            ? (selectedLanguage === 'tl' ? "Tama! Mahusay." : "Correct! Great job.")
+            : (selectedLanguage === 'tl'
+                ? `Ayaw! Ang tamang sagot ay ${translatedAnswer}.`
+                : `Oops, that's wrong. The correct answer is ${correctAnswer}.`)
+    );
+}
 
-document.getElementById("wordDisplay").innerText = data.l + " - " + data.w;
+function playPopSound() {
+    if (!popSound || !isSfxEnabled()) return;
+    popSound.currentTime = 0;
+    popSound.play().catch(() => {
+        // button sound blocked until user interaction is allowed
+    });
+}
 
-/* EMOJI OBJECTS */
-let container = document.getElementById("alphabetObjects");
-container.innerHTML = "";
+function updateBgMusic() {
+    if (!bgAudio) return;
+    const enabled = bgMusicToggle ? bgMusicToggle.checked : false;
+    const volume = bgMusicVolume ? Number(bgMusicVolume.value) / 100 : 0.6;
 
-/* create 5 clickable emojis */
-for(let i=0; i<5; i++){
+    bgAudio.volume = volume;
 
-let span = document.createElement("span");
-span.innerText = data.obj;
+    if (!enabled) {
+        bgAudio.pause();
+        return;
+    }
 
-span.style.fontSize = "50px";
-span.style.margin = "10px";
-span.style.cursor = "pointer";
-span.style.display = "inline-block";
-span.style.transition = "0.2s";
+    bgAudio.play().catch(() => {
+        // autoplay may be blocked until user interacts with the page
+    });
+}
 
-/* CLICK EFFECT */
-span.onclick = function(){
+if (bgMusicToggle) {
+    bgMusicToggle.addEventListener("change", updateBgMusic);
+}
 
-span.style.transform = "scale(1.6)";
-setTimeout(()=>{ span.style.transform="scale(1)"; },200);
+if (bgMusicVolume) {
+    bgMusicVolume.addEventListener("input", updateBgMusic);
+}
 
-/* SOUND */
-speak(data.l + " for " + data.w);
+if (sfxToggle) {
+    sfxToggle.addEventListener("change", playPopSound);
+}
+
+if (sfxVolume) {
+    sfxVolume.addEventListener("input", updateSfxVolume);
+}
+
+function showNotification(message, duration = 2800) {
+
+    if (!notificationBox) return;
+
+    notificationBox.textContent = message;
+
+    notificationBox.classList.add("show");
+
+    notificationBox.classList.remove("hidden");
+
+    clearTimeout(notificationBox.hideTimer);
+
+    notificationBox.hideTimer = setTimeout(() => {
+
+        notificationBox.classList.remove("show");
+
+        notificationBox.classList.add("hidden");
+
+    }, duration);
+
+}
+
+if (notificationBox) {
+
+    notificationBox.addEventListener("click", () => {
+
+        notificationBox.classList.remove("show");
+
+        notificationBox.classList.add("hidden");
+
+    });
+
+}
+
+// ======================================================
+// AVATAR SELECTION
+// ======================================================
+
+avatars.forEach((avatar, index) => {
+
+    avatar.addEventListener("click", () => {
+
+        avatars.forEach(a => {
+
+            a.style.border = "4px solid transparent";
+
+        });
+
+        avatar.style.border = "4px solid #ffb703";
+
+        selectedAvatar = index + 1;
+
+    });
+
+});
+
+
+
+// ======================================================
+// LOAD SAVED DATA
+// ======================================================
+
+window.onload = () => {
+
+    const savedName = localStorage.getItem("studentName");
+
+    if (savedName) {
+
+        studentName.value = savedName;
+
+    }
+
+    // Do not auto-restore avatar selection; user must re-select an avatar each session.
+    // const savedAvatar = localStorage.getItem("avatar");
+
+
+    const savedFullscreen = localStorage.getItem("fullscreenEnabled") === "true";
+
+    if (fullscreenToggle) {
+
+        fullscreenToggle.checked = savedFullscreen;
+
+    }
+
+    updateBgMusic();
+    updateSfxVolume();
+    document.addEventListener("click", () => {
+        updateBgMusic();
+        playPopSound();
+    }, { once: true });
+};
+
+// ======================================================
+// SIMPLE BUTTON ANIMATION
+// ======================================================
+
+const buttons = document.querySelectorAll("button");
+
+buttons.forEach(button => {
+
+    button.addEventListener("mousedown", () => {
+
+        button.style.transform = "scale(0.95)";
+
+    });
+
+    button.addEventListener("mouseup", () => {
+
+        button.style.transform = "scale(1)";
+
+    });
+
+    button.addEventListener("mouseleave", () => {
+
+        button.style.transform = "scale(1)";
+
+    });
+
+});
+
+document.addEventListener("click", () => {
+    playPopSound();
+});
+
+// ======================================================
+// END OF PART 1
+// ======================================================
+
+// ======================================================
+// PART 2 - UNIVERSAL LESSON ENGINE
+// Supports Alphabet, Numbers, Colors and Shapes
+// ======================================================
+
+// -------------------------------
+// LESSON DATA
+// -------------------------------
+
+const lessons = {
+
+    alphabet: [
+        {title:"Alphabet Lesson",letter:"A",word:"Apple",image:"alpha001.png"},
+        {title:"Alphabet Lesson",letter:"B",word:"Ball",image:"alpha002.png"},
+        {title:"Alphabet Lesson",letter:"C",word:"Cat",image:"alpha003.png"},
+        {title:"Alphabet Lesson",letter:"D",word:"Dog",image:"alpha004.png"},
+        {title:"Alphabet Lesson",letter:"E",word:"Elephant",image:"alpha005.png"},
+        {title:"Alphabet Lesson",letter:"F",word:"Fish",image:"alpha006.png"},
+        {title:"Alphabet Lesson",letter:"G",word:"Grapes",image:"alpha007.png"},
+        {title:"Alphabet Lesson",letter:"H",word:"Hat",image:"alpha008.png"},
+        {title:"Alphabet Lesson",letter:"I",word:"Ice Cream",image:"alpha009.png"},
+        {title:"Alphabet Lesson",letter:"J",word:"Juice",image:"alpha010.png"},
+        {title:"Alphabet Lesson",letter:"K",word:"Kite",image:"alpha011.png"},
+        {title:"Alphabet Lesson",letter:"L",word:"Lion",image:"alpha012.png"},
+        {title:"Alphabet Lesson",letter:"M",word:"Monkey",image:"alpha013.png"},
+        {title:"Alphabet Lesson",letter:"N",word:"Nest",image:"alpha014.png"},
+        {title:"Alphabet Lesson",letter:"O",word:"Orange",image:"alpha015.png"},
+        {title:"Alphabet Lesson",letter:"P",word:"Pig",image:"alpha016.png"},
+        {title:"Alphabet Lesson",letter:"Q",word:"Queen",image:"alpha017.png"},
+        {title:"Alphabet Lesson",letter:"R",word:"Rabbit",image:"alpha018.png"},
+        {title:"Alphabet Lesson",letter:"S",word:"Sun",image:"alpha019.png"},
+        {title:"Alphabet Lesson",letter:"T",word:"Tiger",image:"alpha020.png"},
+        {title:"Alphabet Lesson",letter:"U",word:"Umbrella",image:"alpha021.png"},
+        {title:"Alphabet Lesson",letter:"V",word:"Van",image:"alpha022.png"},
+        {title:"Alphabet Lesson",letter:"W",word:"Whale",image:"alpha023.png"},
+        {title:"Alphabet Lesson",letter:"X",word:"Xylophone",image:"alpha024.png"},
+        {title:"Alphabet Lesson",letter:"Y",word:"Yo-Yo",image:"alpha025.png"},
+        {title:"Alphabet Lesson",letter:"Z",word:"Zebra",image:"alpha026.png"}
+    ],
+
+    numbers: [
+        {title:"Numbers Lesson",letter:"",word:"One",image:"num001.png"},
+        {title:"Numbers Lesson",letter:"",word:"Two",image:"num002.png"},
+        {title:"Numbers Lesson",letter:"",word:"Three",image:"num003.png"},
+        {title:"Numbers Lesson",letter:"",word:"Four",image:"num004.png"},
+        {title:"Numbers Lesson",letter:"",word:"Five",image:"num005.png"},
+        {title:"Numbers Lesson",letter:"",word:"Six",image:"num006.png"},
+        {title:"Numbers Lesson",letter:"",word:"Seven",image:"num007.png"},
+        {title:"Numbers Lesson",letter:"",word:"Eight",image:"num008.png"},
+        {title:"Numbers Lesson",letter:"",word:"Nine",image:"num009.png"},
+        {title:"Numbers Lesson",letter:"",word:"Ten",image:"num010.png"}
+    ],
+
+    colors: [
+        {title:"Colors Lesson",letter:"",word:"Red",image:"col001.png"},
+        {title:"Colors Lesson",letter:"",word:"Blue",image:"col002.png"},
+        {title:"Colors Lesson",letter:"",word:"Yellow",image:"col003.png"},
+        {title:"Colors Lesson",letter:"",word:"Green",image:"col004.png"},
+        {title:"Colors Lesson",letter:"",word:"Orange",image:"col005.png"},
+        {title:"Colors Lesson",letter:"",word:"Purple",image:"col006.png"},
+        {title:"Colors Lesson",letter:"",word:"Black",image:"col007.png"},
+        {title:"Colors Lesson",letter:"",word:"White",image:"col008.png"},
+        {title:"Colors Lesson",letter:"",word:"Brown",image:"col009.png"},
+        {title:"Colors Lesson",letter:"",word:"Pink",image:"col010.png"}
+    ],
+
+    shapes: [
+        {title:"Shapes Lesson",letter:"",word:"Circle",image:"sha001.png"},
+        {title:"Shapes Lesson",letter:"",word:"Square",image:"sha002.png"},
+        {title:"Shapes Lesson",letter:"",word:"Triangle",image:"sha003.png"},
+        {title:"Shapes Lesson",letter:"",word:"Rectangle",image:"sha004.png"},
+        {title:"Shapes Lesson",letter:"",word:"Star",image:"sha005.png"},
+        {title:"Shapes Lesson",letter:"",word:"Heart",image:"sha006.png"},
+        {title:"Shapes Lesson",letter:"",word:"Pentagon",image:"sha007.png"},
+        {title:"Shapes Lesson",letter:"",word:"Hexagon",image:"sha008.png"},
+        {title:"Shapes Lesson",letter:"",word:"Diamond",image:"sha009.png"},
+        {title:"Shapes Lesson",letter:"",word:"Oval",image:"sha010.png"}
+    ]
 
 };
 
-container.appendChild(span);
-}
-
-}
-
-/* SPEAK */
-
-function speakLetter(){
-let text = alphabetData[alphabetIndex].l + " for " + alphabetData[alphabetIndex].w;
-speak(text);
-}
-
-/* NEXT */
-
-function nextLetter(){
-alphabetIndex++;
-if(alphabetIndex >= alphabetData.length){
-alphabetIndex = 0;
-}
-updateAlphabet();
-speakLetter();
-}
-
-/* PREVIOUS */
-
-function prevLetter(){
-alphabetIndex--;
-if(alphabetIndex < 0){
-alphabetIndex = alphabetData.length - 1;
-}
-updateAlphabet();
-speakLetter();
-}
-
-/* Voice recognition removed */
-
-/* CLOSE */
-
-function closeLesson(){
-document.getElementById("alphabetLesson").style.display="none";
-}
-
-/* NUMBER LESSON */
-
-
-const numberData = [
-{n:"1", w:"One Tree", obj:"🌳"},
-{n:"2", w:"Two Dogs", obj:"🐶 🐶"},
-{n:"3", w:"Three Apples", obj:"🍎 🍎 🍎"},
-{n:"4", w:"Four Balls", obj:"⚽ ⚽ ⚽ ⚽"},
-{n:"5", w:"Five Flowers", obj:"🌸🌸🌸🌸🌸"},
-{n:"6", w:"Six Fish", obj:"🐟🐟🐟🐟🐟🐟"},
-{n:"7", w:"Seven Birds", obj:"🐦🐦🐦🐦🐦🐦🐦"},
-{n:"8", w:"Eight Hearts", obj:"❤️❤️❤️❤️❤️❤️❤️❤️"},
-{n:"9", w:"Nine Balloons", obj:"🎈🎈🎈🎈🎈🎈🎈🎈🎈"},
-{n:"10", w:"Ten Stars", obj:"⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐ ⭐"}
-];
-let numberIndex = 0;
-
-/* OPEN */
-
-function openNumberLesson(){
-
-document.getElementById("numberLesson").style.display="block";
-
-updateNumber();
-
-speak("Come on, Let's learn numbers!");
-
-}
-
-/* UPDATE */
-
-function updateNumber(){
-
-let data = numberData[numberIndex];
-
-document.getElementById("numberWord").innerText = data.n + " - " + data.w;
-
-/* INTERACTIVE OBJECTS */
-let container = document.getElementById("numberObjects");
-container.innerHTML = "";
-
-
-let items = data.obj.includes(" ") 
-    ? data.obj.split(" ") 
-    : Array.from(data.obj);  
-
-for(let i=0; i < items.length; i++){
-
-let span = document.createElement("span");
-span.innerText = items[i];
-
-span.style.margin = "5px";
-span.style.cursor = "pointer";
-
-/* CLICK EFFECT */
-span.onclick = function(){
-span.style.transform = "scale(1.5)";
-setTimeout(()=>{ span.style.transform="scale(1)"; },200);
-speak(data.n);
+const translationMap = {
+    Apple: "Mansanas",
+    Ball: "Bola",
+    Cat: "Pusa",
+    Dog: "Aso",
+    Elephant: "Elepante",
+    Fish: "Isda",
+    Grapes: "Ubas",
+    Hat: "Sumbrero",
+    "Ice Cream": "Sorbetes",
+    Juice: "Katas",
+    Kite: "Saranggola",
+    Lion: "Leon",
+    Monkey: "Unggoy",
+    Nest: "Pugad",
+    Orange: "Kahel",
+    Pig: "Baboy",
+    Queen: "Reyna",
+    Rabbit: "Kuneho",
+    Sun: "Araw",
+    Tiger: "Tigre",
+    Umbrella: "Payong",
+    Van: "Banyahan",
+    Whale: "Balyena",
+    Xylophone: "Silipono",
+    "Yo-Yo": "Yo-Yo",
+    Zebra: "Zebra",
+    One: "Isa",
+    Two: "Dalawa",
+    Three: "Tatlo",
+    Four: "Apat",
+    Five: "Lima",
+    Six: "Anim",
+    Seven: "Pito",
+    Eight: "Walo",
+    Nine: "Siyam",
+    Ten: "Sampu",
+    Red: "Pula",
+    Blue: "Asul",
+    Yellow: "Dilaw",
+    Green: "Berde",
+    Orange: "Kahel",
+    Purple: "Ube",
+    Black: "Itim",
+    White: "Puti",
+    Brown: "Kayumanggi",
+    Pink: "Rosas",
+    Circle: "Bilog",
+    Square: "Parisukat",
+    Triangle: "Tatsulok",
+    Rectangle: "Parihaba",
+    Star: "Bituin",
+    Heart: "Puso",
+    Pentagon: "Pentagon",
+    Hexagon: "Heksagon",
+    Diamond: "Diyamante",
+    Oval: "Obalo"
 };
 
-container.appendChild(span);
+const titleTranslations = {
+    alphabet: "Aral ng Alpabeto",
+    numbers: "Aral ng Numero",
+    colors: "Aral ng Kulay",
+    shapes: "Aral ng Hugis"
+};
 
+const quizTitleTranslations = {
+    alphabet: "Pagsusulit ng Alpabeto",
+    numbers: "Pagsusulit ng Numero",
+    colors: "Pagsusulit ng Kulay",
+    shapes: "Pagsusulit ng Hugis"
+};
+
+function translateWord(word) {
+    if (selectedLanguage === 'tl') {
+        return translationMap[word] || word;
+    }
+    return word;
 }
 
+function translateLessonTitle(category) {
+    if (selectedLanguage === 'tl') {
+        return titleTranslations[category] || lessons[category][0].title;
+    }
+    return lessons[category][0].title;
 }
 
-/* SPEAK */
-
-function speakNumber(){
-let text = numberData[numberIndex].w;
-speak(text);
+function translateLessonProgress(count, total) {
+    if (selectedLanguage === 'tl') {
+        return `Aralin ${count} ng ${total}`;
+    }
+    return `Lesson ${count} of ${total}`;
 }
 
-/* NEXT */
+let currentCategory = "alphabet";
+let currentLesson = 0;
 
-function nextNumber(){
+function getLessonSpeechText() {
+    const lesson = lessons[currentCategory][currentLesson];
+    const localizedWord = translateWord(lesson.word);
 
-numberIndex++;
+    if (selectedLanguage === 'tl') {
+        switch (currentCategory) {
+            case "alphabet":
+                return `Ang letrang ${lesson.letter} ay para sa ${localizedWord}.`;
+            case "numbers":
+                return `Ang numerong ito ay ${localizedWord}.`;
+            case "colors":
+                return `Ang kulay na ito ay ${localizedWord}.`;
+            case "shapes":
+                return `Ang hugis na ito ay ${localizedWord}.`;
+            default:
+                return localizedWord;
+        }
+    }
 
-if(numberIndex >= numberData.length){
-numberIndex = 0;
+    switch (currentCategory) {
+        case "alphabet":
+            return `${lesson.letter} is for ${lesson.word}.`;
+        case "numbers":
+            return `This number is ${lesson.word}.`;
+        case "colors":
+            return `This color is ${lesson.word}.`;
+        case "shapes":
+            return `This shape is a ${lesson.word}.`;
+        default:
+            return lesson.word;
+    }
 }
 
-updateNumber();
-speakNumber();
+function updateLessonSubtitle() {
+    if (!lessonFeedback) return;
 
+    lessonFeedback.innerHTML =
+        `<span class="lesson-info">${translateLessonProgress(currentLesson + 1, lessons[currentCategory].length)}</span>`;
 }
 
-/* PREVIOUS */
+function speakLessonText() {
+    speechSynthesis.cancel();
 
-function prevNumber(){
+    const speechText = getLessonSpeechText();
+    const speech = new SpeechSynthesisUtterance(speechText);
 
-numberIndex--;
+    speech.rate = 0.8;
+    speech.pitch = 1.1;
+    speech.volume = 1;
 
-if(numberIndex < 0){
-numberIndex = numberData.length - 1;
+    speechSynthesis.speak(speech);
+    showNotification(speechText, 2600);
 }
 
-updateNumber();
-speakNumber();
+function loadLesson() {
 
+    const lesson = lessons[currentCategory][currentLesson];
+
+    lessonTitle.textContent = translateLessonTitle(currentCategory);
+    lessonLetter.textContent = lesson.letter;
+    lessonWord.textContent = translateWord(lesson.word);
+    lessonImage.src = lesson.image;
+
+    const progress =
+        ((currentLesson + 1) /
+        lessons[currentCategory].length) * 100;
+
+    progressFill.style.width = progress + "%";
+
+    updateLessonSubtitle();
+    speakLessonText();
 }
 
-/* CLOSE */
+function openLesson(category){
 
-function closeNumberLesson(){
+    currentCategory = category;
+    currentLesson = 0;
 
-document.getElementById("numberLesson").style.display="none";
-
+    // ask language before starting lessons
+    pendingLessonCategory = category;
+    if (languageModal) languageModal.style.display = "flex";
 }
 
-/* Number voice recognition removed */
+// Handle language modal actions
+let pendingLessonCategory = null;
+let selectedLanguage = localStorage.getItem('lessonLanguage') || 'en';
 
-/* SPEECH FUNCTION (IMPORTANT!) */
+if (langEnBtn) langEnBtn.addEventListener('click', () => {
+    selectedLanguage = 'en';
+    localStorage.setItem('lessonLanguage', selectedLanguage);
+    if (languageModal) languageModal.style.display = 'none';
+    if (pendingLessonCategory) {
+        openLessonContinue(pendingLessonCategory);
+        pendingLessonCategory = null;
+    }
+});
 
-// function speak(text){
-// let speech = new SpeechSynthesisUtterance(text);
-// speech.lang = "en-US";
-// window.speechSynthesis.speak(speech);
-// }
+if (langTlBtn) langTlBtn.addEventListener('click', () => {
+    selectedLanguage = 'tl';
+    localStorage.setItem('lessonLanguage', selectedLanguage);
+    if (languageModal) languageModal.style.display = 'none';
+    if (pendingLessonCategory) {
+        openLessonContinue(pendingLessonCategory);
+        pendingLessonCategory = null;
+    }
+});
 
-/*COLORS LESSON */
+if (langCancelBtn) langCancelBtn.addEventListener('click', () => {
+    if (languageModal) languageModal.style.display = 'none';
+    pendingLessonCategory = null;
+});
 
-const colorsData = [
+// note: modal close X removed; modal can be closed via Cancel button only
 
-{name:"Red", object:"Apple", emoji:"🍎", value:"red"},
-{name:"Blue", object:"Notebook", emoji:"📘", value:"blue"},
-{name:"Green", object:"Leaf", emoji:"🍃", value:"green"},
-{name:"Yellow", object:"Banana", emoji:"🍌", value:"yellow"},
-{name:"Orange", object:"Cat", emoji:"🐱", value:"orange"},
-{name:"Purple", object:"Grapes", emoji:"🍇", value:"purple"},
-{name:"Pink", object:"Flower", emoji:"🌸", value:"pink"},
-{name:"Black", object:"Heart", emoji:"🖤", value:"black"},
-{name:"White", object:"Cloud", emoji:"☁️", value:"white"},
-{name:"Brown", object:"Bear", emoji:"🐻", value:"brown"}
-
-];
-
-let colorIndex = 0;
-
-function openColorsLesson(){
-
-document.getElementById("colorsLesson").style.display="block";
-
-updateColor();
-
-speak("Come on, Let's learn colors");
-
+function openLessonContinue(category){
+    currentCategory = category;
+    currentLesson = 0;
+    // store category and language selection
+    loadLesson();
+    showScreen(lessonScreen);
 }
 
-function updateColor(){
+// -------------------------------
+// MENU BUTTONS
+// -------------------------------
 
-let data = colorsData[colorIndex];
+lessonButtons[0].onclick = () => openLesson("alphabet");
+lessonButtons[1].onclick = () => openLesson("numbers");
+lessonButtons[2].onclick = () => openLesson("colors");
+lessonButtons[3].onclick = () => openLesson("shapes");
 
-let nameEl = document.getElementById("colorName");
-let boxEl = document.getElementById("colorBox");
-let emojiEl = document.getElementById("colorEmoji");
+// -------------------------------
+// NEXT
+// -------------------------------
 
+nextLesson.onclick = () => {
 
-nameEl.innerText = data.name + " - " + data.object;
-boxEl.style.background = data.value;
-emojiEl.innerText = data.emoji;
+    if(currentLesson < lessons[currentCategory].length - 1){
 
-/* MAKE EMOJI CLICKABLE */
-emojiEl.style.cursor = "pointer";
-emojiEl.style.display = "inline-block";
-emojiEl.style.transition = "0.2s";
+        currentLesson++;
+        loadLesson();
 
-/* CLICK EFFECT + SPEAK AGAIN */
-emojiEl.onclick = function(){
+    }else{
 
-emojiEl.style.transform = "scale(1.5)";
+        speechSynthesis.cancel();
 
-setTimeout(()=>{
-emojiEl.style.transform = "scale(1)";
-},200);
+        alert("🎉 You finished the " +
+              currentCategory +
+              " lesson!");
 
-/* SAY AGAIN */
-speak(data.name + " " + data.object);
+        // Part 3 will open the quiz here.
+        showScreen(menuScreen);
+
+    }
 
 };
 
-}
-function speakColor(){
+// -------------------------------
+// PREVIOUS
+// -------------------------------
 
-let data = colorsData[colorIndex];
+previousLesson.onclick = () => {
 
-speak(data.name + " " + data.object);
+    if(currentLesson > 0){
 
-}
+        currentLesson--;
+        loadLesson();
 
-function nextColor(){
+    }
 
-colorIndex++;
+};
 
-if(colorIndex >= colorsData.length){
-colorIndex = 0;
-}
+// -------------------------------
+// SPEAK
+// -------------------------------
 
-updateColor();
+voiceBtn.onclick = () => {
+    speakLessonText();
+};
 
-speakColor();
+// -------------------------------
+// BACK TO MENU
+// -------------------------------
 
-}
+lessonHomeBtn.onclick = () => {
 
-function prevColor(){
+    speechSynthesis.cancel();
+    showScreen(menuScreen);
 
-colorIndex--;
+};
 
-if(colorIndex < 0){
-colorIndex = colorsData.length - 1;
-}
+// ======================================================
+// PART 2D-1
+// Lesson Improvements
+// ======================================================
 
-updateColor();
+// -------------------------------
+// Update Navigation Buttons
+// -------------------------------
 
-speakColor();
+function updateLessonButtons() {
 
-}
+    // Disable Previous on first lesson
+    previousLesson.disabled = (currentLesson === 0);
 
-function closeColorsLesson(){
+    // Change Next -> Finish
+    if (currentLesson === lessons[currentCategory].length - 1) {
 
-document.getElementById("colorsLesson").style.display="none";
+        nextLesson.innerHTML = "Finish ✔";
 
-}
+    } else {
 
-/* SHAPES LESSON  */
+        nextLesson.innerHTML = "Next ➜";
 
-const shapesData = [
-
-{name:"Circle", type:"css", class:"circle"},
-{name:"Square", type:"css", class:"square"},
-{name:"Triangle", type:"css", class:"triangle"},
-{name:"Rectangle", type:"css", class:"rectangle"},
-{name:"Oval", type:"css", class:"oval"},
-{name:"Star", type:"emoji", symbol:"⭐"},
-{name:"Heart", type:"emoji", symbol:"❤️"},
-{name:"Diamond", type:"emoji", symbol:"💎"},
-{name:"Pentagon", type:"emoji", symbol:"🔷"},
-{name:"Hexagon", type:"emoji", symbol:"⬡"}
-
-];
-
-let shapeIndex = 0;
-
-/* OPEN LESSON */
-
-function openShapesLesson(){
-
-document.getElementById("shapesLesson").style.display="block";
-
-updateShape();
-
-speak("Come on, Let's learn shapes");
-
-}
-
-/* UPDATE SHAPE */
-
-function updateShape(){
-
-let data = shapesData[shapeIndex];
-
-document.getElementById("shapeName").innerText = data.name;
-
-let display = document.getElementById("shapeDisplay");
-
-display.className="shapeDisplay";
-
-if(data.type === "css"){
-
-display.className="shapeDisplay " + data.class;
-display.innerHTML="";
-
-}else{
- display.className = "shapeDisplay emoji"; 
-display.innerHTML=data.symbol;
-
-}
-
-}
-
-/* SPEAK SHAPE */
-
-function speakShape(){
-
-let name = shapesData[shapeIndex].name;
-
-speak(name);
-
-}
-
-/* NEXT */
-
-function nextShape(){
-
-shapeIndex++;
-
-if(shapeIndex >= shapesData.length){
-shapeIndex = 0;
-}
-
-updateShape();
-
-speakShape();
-
-}
-
-/* PREVIOUS */
-
-function prevShape(){
-
-shapeIndex--;
-
-if(shapeIndex < 0){
-shapeIndex = shapesData.length - 1;
-}
-
-updateShape();
-
-speakShape();
+    }
 
 }
 
 
-/* CLOSE */
 
-function closeShapesLesson(){
+// -------------------------------
+// Improve loadLesson()
+// -------------------------------
 
-document.getElementById("shapesLesson").style.display="none";
+const originalLoadLesson = loadLesson;
+
+loadLesson = function () {
+
+    lessonContainerAnimation();
+
+    originalLoadLesson();
+
+    updateLessonButtons();
+
+}
+
+// -------------------------------
+// Fade Animation
+// -------------------------------
+
+function lessonContainerAnimation() {
+
+    lessonImage.classList.remove("fade");
+    lessonLetter.classList.remove("fade");
+    lessonWord.classList.remove("fade");
+
+    void lessonImage.offsetWidth;
+
+    lessonImage.classList.add("fade");
+    lessonLetter.classList.add("fade");
+    lessonWord.classList.add("fade");
 
 }
 
-// clickable
-function speakShape(){
+// -------------------------------
+// Image Fallback
+// -------------------------------
 
-  let name = shapesData[shapeIndex].name;
+lessonImage.onerror = function () {
 
-  let shape = document.getElementById("shapeDisplay");
+    lessonImage.src = "images/no-image.png";
 
-  // animate
-  shape.style.transform = "scale(1.6)";
-  setTimeout(() => {
-    shape.style.transform = "scale(1)";
-  }, 200);
+};
 
-  speak(name);
+// -------------------------------
+// Better Voice
+// -------------------------------
+
+voiceBtn.onclick = () => {
+
+    speechSynthesis.cancel();
+
+    const lesson = lessons[currentCategory][currentLesson];
+    const localizedWord = translateWord(lesson.word);
+
+    let sentence = "";
+
+    if (selectedLanguage === 'tl') {
+        switch (currentCategory) {
+            case "alphabet":
+                sentence = `Ang letrang ${lesson.letter} ay para sa ${localizedWord}.`;
+                break;
+            case "numbers":
+                sentence = `Ang numerong ito ay ${localizedWord}.`;
+                break;
+            case "colors":
+                sentence = `Ang kulay na ito ay ${localizedWord}.`;
+                break;
+            case "shapes":
+                sentence = `Ang hugis na ito ay ${localizedWord}.`;
+                break;
+        }
+    } else {
+        switch (currentCategory) {
+            case "alphabet":
+                sentence = lesson.letter + " is for " + lesson.word;
+                break;
+            case "numbers":
+                sentence = "Number " + lesson.letter + ". " + lesson.word;
+                break;
+            case "colors":
+                sentence = "This color is " + lesson.word;
+                break;
+            case "shapes":
+                sentence = "This shape is a " + lesson.word;
+                break;
+        }
+    }
+
+    const speech = new SpeechSynthesisUtterance(sentence);
+
+    speech.rate = 0.8;
+    speech.pitch = 1.1;
+    speech.volume = 1;
+
+    speechSynthesis.speak(speech);
+
+};
+
+// -------------------------------
+// Keyboard Support
+// -------------------------------
+
+document.addEventListener("keydown", (event) => {
+
+    if (!lessonScreen.classList.contains("active")) return;
+
+    switch (event.key) {
+
+        case "ArrowRight":
+
+            nextLesson.click();
+
+            break;
+
+        case "ArrowLeft":
+
+            previousLesson.click();
+
+            break;
+
+        case " ":
+
+            event.preventDefault();
+
+            voiceBtn.click();
+
+            break;
+
+    }
+
+});
+
+// -------------------------------
+// Welcome Voice
+// -------------------------------
+
+function welcomeLessonVoice() {
+
+    speechSynthesis.cancel();
+
+    const message = selectedLanguage === 'tl'
+        ? "Maligayang pagdating! Magsisimula na tayo sa pag-aaral."
+        : "Welcome! Let's start learning.";
+
+    const speech = new SpeechSynthesisUtterance(message);
+
+    speech.rate = 0.9;
+    speech.pitch = 1.2;
+
+    speechSynthesis.speak(speech);
 
 }
+
+// -------------------------------
+// Replace openLesson()
+// -------------------------------
+
+const oldOpenLesson = openLesson;
+
+openLesson = function(category){
+
+    oldOpenLesson(category);
+
+    updateLessonButtons();
+
+    setTimeout(() => {
+
+        welcomeLessonVoice();
+
+    },300);
+
+};
+
+// -------------------------------
+// Auto Stop Voice
+// -------------------------------
+
+window.addEventListener("beforeunload",()=>{
+
+    speechSynthesis.cancel();
+
+});
+
+// ======================================================
+// END PART 2D-1
+// ======================================================
+
+
+// ======================================================
+// PART 2D-2
+// Lesson Completion & Quiz Transition
+// ======================================================
+
+// -------------------------------
+// Quiz Screen
+// -------------------------------
+
+const quizScreen = document.getElementById("quizScreen");
+const quizTitle = document.getElementById("quizTitle");
+const currentScoreEl = document.getElementById("currentScore");
+const questionNumberEl = document.getElementById("questionNumber");
+const quizQuestionEl = document.getElementById("quizQuestion");
+const quizFeedbackEl = document.getElementById("quizFeedback");
+const quizProgressFillEl = document.getElementById("quizProgressFill");
+const quizVoiceBtn = document.getElementById("quizVoiceBtn");
+const answerButtons = document.querySelectorAll(".answer-card");
+
+// Difficulty UI
+const difficultyButtons = document.querySelectorAll(".difficulty-btn");
+const QUIZ_DIFFICULTY = {
+    easy: { questionCount: 7 },
+    medium: { questionCount: 10 },
+    hard: { questionCount: 12 }
+};
+
+let quizDifficulty = localStorage.getItem("quizDifficulty") || "easy";
+
+function applyQuizDifficultyUI() {
+    difficultyButtons.forEach(btn => {
+        const isActive = btn.dataset.difficulty === quizDifficulty;
+        btn.classList.toggle("active", isActive);
+        btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+    });
+}
+
+difficultyButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+        // Difficulty buttons are display-only; quiz difficulty is automatic.
+    });
+});
+
+
+// Current category for quiz
+let quizCategory = "";
+let quizQuestions = [];
+let currentQuizIndex = 0;
+let quizScore = 0;
+let quizAnswered = false;
+let quizComplete = false;
+let selectedQuizChoice = null;
+
+
+// -------------------------------
+// Save Lesson Progress
+// -------------------------------
+
+function saveLessonProgress() {
+
+    let progress = JSON.parse(localStorage.getItem(getNamespacedKey("lessonProgress"))) || {};
+
+    progress[currentCategory] = true;
+
+    localStorage.setItem(
+        getNamespacedKey("lessonProgress"),
+        JSON.stringify(progress)
+    );
+
+}
+
+// -------------------------------
+// Student Progress
+// -------------------------------
+
+function saveStudentProgress() {
+
+    let completed =
+        Number(localStorage.getItem(getNamespacedKey("completedLessons"))) || 0;
+
+    completed++;
+
+    localStorage.setItem(
+        getNamespacedKey("completedLessons"),
+        completed
+    );
+
+}
+
+// -------------------------------
+// Finish Lesson
+// -------------------------------
+
+function finishLesson() {
+
+    speechSynthesis.cancel();
+
+    saveLessonProgress();
+
+    saveStudentProgress();
+
+    updateCurrentStudentRecord();
+
+    quizCategory = currentCategory;
+
+    setTimeout(() => {
+
+        showScreen(quizScreen);
+
+        initializeQuiz();
+
+    },400);
+
+}
+
+// -------------------------------
+// Replace Next Button
+// -------------------------------
+
+nextLesson.onclick = () => {
+
+    if(currentLesson < lessons[currentCategory].length - 1){
+
+        currentLesson++;
+
+        loadLesson();
+
+        return;
+
+    }
+
+    finishLesson();
+
+};
+
+// -------------------------------
+// Quiz Placeholder
+// -------------------------------
+
+function initializeQuiz(){
+
+    applyQuizDifficultyUI();
+
+    quizCategory = currentCategory;
+    quizScore = 0;
+    currentQuizIndex = 0;
+    quizAnswered = false;
+    quizComplete = false;
+    quizQuestions = generateQuizQuestions(quizCategory, quizDifficulty);
+
+    quizTitle.textContent =
+        selectedLanguage === 'tl'
+            ? quizTitleTranslations[quizCategory] || (quizCategory.charAt(0).toUpperCase() + quizCategory.slice(1) + " Quiz")
+            : (quizCategory.charAt(0).toUpperCase() + quizCategory.slice(1) + " Quiz");
+
+    currentScoreEl.textContent = "0";
+    quizAnswered = false;
+    quizComplete = false;
+    selectedQuizChoice = null;
+    quizFeedbackEl.textContent = "";
+    quizProgressFillEl.style.width = "0%";
+
+    loadQuizQuestion();
+}
+
+function generateQuizQuestions(category, difficulty){
+
+    const items = lessons[category];
+    const pool = [...items];
+    const cfg = QUIZ_DIFFICULTY[difficulty] || QUIZ_DIFFICULTY.easy;
+    const questionCount = Math.min(cfg.questionCount, pool.length);
+
+    const shuffled = pool
+        .map(item => ({item, sort: Math.random()}))
+        .sort((a, b) => a.sort - b.sort)
+        .map(entry => entry.item)
+        .slice(0, questionCount);
+
+    return shuffled.map(item => ({
+        prompt: selectedLanguage === 'tl'
+            ? `Alin sa mga ito ang ${translateWord(item.word)}?`
+            : `Which one is ${item.word}?`,
+        correct: item.word,
+        choices: buildQuizChoices(item.word, items, difficulty)
+    }));
+}
+
+function buildQuizChoices(correctWord, items, difficulty){
+
+    const allWords = items.map(item => item.word);
+    const distractorsAll = allWords.filter(word => word !== correctWord);
+
+    // Difficulty affects distractor pool (Hard = closer distractors => harder).
+    // Since categories are separate, we approximate closeness by using random sampling size:
+    // Easy: fewer distractors available -> more “random” chances.
+    // Hard: use a larger distractor pool -> higher chance of similar-looking images.
+    const cfg = QUIZ_DIFFICULTY[difficulty] || QUIZ_DIFFICULTY.easy;
+    const fraction = difficulty === 'easy' ? 0.55 : (difficulty === 'medium' ? 0.75 : 1);
+    const targetCount = Math.max(3, Math.min(distractorsAll.length, Math.floor(distractorsAll.length * fraction)));
+
+    const sampledDistractors = distractorsAll
+        .map(word => ({word, sort: Math.random()}))
+        .sort((a,b) => a.sort - b.sort)
+        .slice(0, targetCount)
+        .map(x => x.word);
+
+    const choices = [correctWord];
+
+    const shuffled = sampledDistractors
+        .map(word => ({word, sort: Math.random()}))
+        .sort((a,b) => a.sort - b.sort)
+        .map(entry => entry.word);
+
+    while(choices.length < 4 && shuffled.length){
+        choices.push(shuffled.shift());
+    }
+
+    // Ensure exactly 4 options if possible
+    while(choices.length < 4){
+        const fallback = distractorsAll[Math.floor(Math.random() * distractorsAll.length)];
+        if (!choices.includes(fallback)) choices.push(fallback);
+    }
+
+    return choices.sort(() => Math.random() - 0.5);
+}
+
+
+function loadQuizQuestion(){
+
+    const question = quizQuestions[currentQuizIndex];
+
+    quizQuestionEl.textContent = question.prompt;
+    // Force quiz display to match “Question 1-10” format
+    // regardless of adaptive question length.
+    const displayIndex = Math.min(currentQuizIndex + 1, 10);
+    questionNumberEl.textContent = `Question ${displayIndex} of 10`;
+
+    currentScoreEl.textContent = String(quizScore);
+    quizProgressFillEl.style.width =
+        `${Math.round((currentQuizIndex / quizQuestions.length) * 100)}%`;
+    quizFeedbackEl.textContent = "";
+
+    answerButtons.forEach((button, index) => {
+        button.disabled = false;
+        button.classList.remove("correct", "wrong", "selected");
+        const answerWord = question.choices[index] || "";
+        button.dataset.choice = answerWord;
+
+        const answerItem = lessons[currentCategory].find(item => item.word === answerWord);
+        const imageDiv = button.querySelector(".answer-image");
+
+        if (imageDiv) {
+            if (answerItem && answerItem.image) {
+                imageDiv.style.backgroundImage = `url('${answerItem.image}')`;
+                imageDiv.style.backgroundSize = "cover";
+                imageDiv.style.backgroundPosition = "center";
+            } else {
+                imageDiv.style.backgroundImage = "none";
+            }
+        }
+    });
+
+    selectedQuizChoice = null;
+
+    speakQuizQuestion();
+}
+
+function selectQuizAnswer(button){
+
+    if (quizAnswered || quizComplete) return;
+
+    selectedQuizChoice = button.dataset.choice;
+
+    answerButtons.forEach(btn => {
+        btn.classList.toggle("selected", btn === button);
+    });
+
+    confirmQuizAnswer();
+}
+
+function confirmQuizAnswer(){
+    if (quizAnswered || quizComplete || !selectedQuizChoice) return;
+
+    quizAnswered = true;
+    const selected = selectedQuizChoice;
+    const correct = quizQuestions[currentQuizIndex].correct;
+    const isCorrect = selected === correct;
+
+    answerButtons.forEach(btn => {
+        if (btn.dataset.choice === selected) {
+            btn.classList.add(isCorrect ? "correct" : "wrong");
+        }
+        if (!isCorrect && btn.dataset.choice === correct) {
+            btn.classList.add("correct");
+        }
+        btn.disabled = true;
+    });
+
+    if (isCorrect) {
+        quizFeedbackEl.textContent = selectedLanguage === 'tl' ? "Tama!" : "Correct!";
+        quizScore++;
+    } else {
+        quizFeedbackEl.textContent = selectedLanguage === 'tl'
+            ? `Mali! Ang tamang sagot ay ${translateWord(correct)}.`
+            : `Oops! The correct answer is ${correct}.`;
+    }
+
+    currentScoreEl.textContent = String(quizScore);
+
+    const advanceQuiz = () => {
+        if (quizComplete) return;
+        if (currentQuizIndex < quizQuestions.length - 1) {
+            currentQuizIndex++;
+            quizAnswered = false;
+            loadQuizQuestion();
+        } else {
+            finishQuiz();
+        }
+    };
+
+    const feedbackPromise = speakQuizFeedback(isCorrect, correct);
+
+    if (isCorrect) {
+        setTimeout(() => {
+            feedbackPromise.then(advanceQuiz);
+        }, 1400);
+    } else {
+        feedbackPromise.then(advanceQuiz);
+    }
+}
+
+function finishQuiz(){
+
+    quizComplete = true;
+    quizProgressFillEl.style.width = "100%";
+    quizQuestionEl.textContent = selectedLanguage === 'tl' ? "Tapos na ang Pagsusulit!" : "Quiz Complete!";
+    questionNumberEl.textContent = selectedLanguage === 'tl'
+        ? `Pinal na Iskor: ${quizScore} / ${quizQuestions.length}`
+        : `Final Score: ${quizScore} / ${quizQuestions.length}`;
+    quizFeedbackEl.textContent = selectedLanguage === 'tl'
+        ? `Magaling, ${localStorage.getItem("studentName") || "Estudyante"}!`
+        : `Great work, ${localStorage.getItem("studentName") || "Student"}!`;
+    currentScoreEl.textContent = String(quizScore);
+    answerButtons.forEach(btn => {
+        btn.disabled = true;
+        btn.classList.remove("correct", "wrong");
+    });
+    saveQuizSummary();
+
+    setTimeout(() => {
+        showScreen(menuScreen);
+    }, 1800);
+}
+
+function saveQuizSummary() {
+    const student = localStorage.getItem("studentName") || "Unknown";
+
+    // Per-student quiz summary (teacher dashboard reads from these keys)
+    const lastQuizScoreKey = getNamespacedKey(`lastQuizScore_${encodeURIComponent(student)}`);
+    const lastQuizTotalKey = getNamespacedKey(`lastQuizTotal_${encodeURIComponent(student)}`);
+
+    localStorage.setItem(lastQuizScoreKey, String(quizScore));
+    localStorage.setItem(lastQuizTotalKey, String(quizQuestions.length));
+
+    updateCurrentStudentRecord();
+}
+
+
+quizVoiceBtn.onclick = () => {
+    speakQuizQuestion();
+};
+
+
+answerButtons.forEach(button => {
+    button.addEventListener("click", () => selectQuizAnswer(button));
+});
+
+
+// -------------------------------
+// Congratulation Voice
+// -------------------------------
+
+function congratulateStudent(){
+
+    speechSynthesis.cancel();
+
+    const speech =
+        new SpeechSynthesisUtterance(
+
+            "Great job! Let's answer the quiz."
+
+        );
+
+    speech.rate = .9;
+    speech.pitch = 1.2;
+
+    speechSynthesis.speak(speech);
+
+}
+
+// -------------------------------
+// Speak before Quiz
+// -------------------------------
+
+const oldFinishLesson = finishLesson;
+
+finishLesson = function(){
+
+    congratulateStudent();
+
+    setTimeout(()=>{
+
+        oldFinishLesson();
+
+    },1800);
+
+};
+
+// -------------------------------
+// Show Progress in Console
+// -------------------------------
+
+function showProgress(){
+
+    const progress =
+        JSON.parse(
+            localStorage.getItem(getNamespacedKey("lessonProgress"))
+        ) || {};
+
+    console.log(progress);
+
+}
+
+showProgress();
+
+// -------------------------------
+// Continue Learning
+// -------------------------------
+
+function completedCategories(){
+
+    const progress =
+        JSON.parse(
+            localStorage.getItem(getNamespacedKey("lessonProgress"))
+        ) || {};
+
+    return Object.keys(progress).length;
+
+}
+
+// -------------------------------
+// Optional Welcome Back
+// -------------------------------
+
+window.addEventListener("load",()=>{
+
+    const total = completedCategories();
+
+    if(total > 0){
+
+        console.log(
+            "Completed Categories:",
+            total
+        );
+
+    }
+
+});
+
+// ======================================================
+// END OF PART 2
+// ======================================================
+
+
+
+
+
