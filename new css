@@ -242,7 +242,6 @@ h1{
     object-fit:cover;
     display:block;
 }
-    padding:16px 35px;
     border:none;
     border-radius:18px;
     background:#6c5ce7;
@@ -695,7 +694,9 @@ footer{
     h1{
 
         font-size:40px;
+
     }
+
 
     .subtitle{
 
@@ -1241,17 +1242,43 @@ footer{
 ===================================================== */
 
 .answer-grid{
-
     display:grid;
-
-    grid-template-columns:repeat(4,1fr);
-
+    grid-template-columns:repeat(3,1fr);
     gap:12px;
-
     margin-top:18px;
-
     justify-items:center;
+}
 
+/* Difficulty-based layouts */
+#quizAnswerGrid[data-quiz-choice-layout="easy"]{
+    /* 3 choices => 1 row x 3 columns */
+    grid-template-columns:repeat(3,1fr);
+    grid-template-rows:repeat(1,auto);
+    grid-auto-rows:auto;
+}
+
+#quizAnswerGrid[data-quiz-choice-layout="medium"]{
+    /* 6 choices => 2 rows x 3 columns */
+    grid-template-columns:repeat(3,1fr);
+    grid-template-rows:repeat(2,auto);
+    grid-auto-rows:auto;
+}
+
+#quizAnswerGrid[data-quiz-choice-layout="hard"]{
+    /* 10 choices => 2 rows x 5 columns */
+    grid-template-columns:repeat(5,1fr);
+    grid-template-rows:repeat(2,auto);
+    grid-auto-rows:auto;
+}
+
+/* Sizing tweaks for variable grid */
+.answer-card{
+    min-height:170px;
+    max-width:180px;
+}
+
+.answer-image{
+    height:125px;
 }
 
 .answer-card{
@@ -2049,9 +2076,6 @@ footer{
 
 
 }
-
-
-
 
 
 
