@@ -588,6 +588,42 @@
 
             </button>
 
+            <button class="answer-card" id="answer5">
+
+                <div class="answer-image"></div>
+
+            </button>
+
+            <button class="answer-card" id="answer6">
+
+                <div class="answer-image"></div>
+
+            </button>
+
+            <button class="answer-card" id="answer7">
+
+                <div class="answer-image"></div>
+
+            </button>
+
+            <button class="answer-card" id="answer8">
+
+                <div class="answer-image"></div>
+
+            </button>
+
+            <button class="answer-card" id="answer9">
+
+                <div class="answer-image"></div>
+
+            </button>
+
+            <button class="answer-card" id="answer10">
+
+                <div class="answer-image"></div>
+
+            </button>
+
         </div>
 
         <!-- Feedback -->
@@ -608,9 +644,3 @@
  <script src="script.js"></script>
 
 </html>
-
-
-
-
-
-
