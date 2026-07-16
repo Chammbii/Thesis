@@ -1425,9 +1425,9 @@ const answerButtons = document.querySelectorAll(".answer-card");
 // Difficulty UI
 const difficultyButtons = document.querySelectorAll(".difficulty-btn");
 const QUIZ_DIFFICULTY = {
-    easy: { questionCount: 7 },
+    easy: { questionCount: 5 },
     medium: { questionCount: 10 },
-    hard: { questionCount: 12 }
+    hard: { questionCount: 15 }
 };
 
 let quizDifficulty = localStorage.getItem("quizDifficulty") || "easy";
@@ -1544,6 +1544,9 @@ nextLesson.onclick = () => {
 
 function initializeQuiz(){
 
+    // Always start at Easy for a new quiz session
+    quizDifficulty = 'easy';
+
     applyQuizDifficultyUI();
 
     quizCategory = currentCategory;
@@ -1551,22 +1554,42 @@ function initializeQuiz(){
     currentQuizIndex = 0;
     quizAnswered = false;
     quizComplete = false;
-    quizQuestions = generateQuizQuestions(quizCategory, quizDifficulty);
+    selectedQuizChoice = null;
+    quizFeedbackEl.textContent = "";
+    quizProgressFillEl.style.width = "0%";
 
     quizTitle.textContent =
         selectedLanguage === 'tl'
             ? quizTitleTranslations[quizCategory] || (quizCategory.charAt(0).toUpperCase() + quizCategory.slice(1) + " Quiz")
             : (quizCategory.charAt(0).toUpperCase() + quizCategory.slice(1) + " Quiz");
 
-    currentScoreEl.textContent = "0";
-    quizAnswered = false;
-    quizComplete = false;
-    selectedQuizChoice = null;
-    quizFeedbackEl.textContent = "";
-    quizProgressFillEl.style.width = "0%";
+    // Sequential stage progression: Easy -> Medium -> Hard
+    // Each stage is exactly 5 questions.
+    const stageConfig = [
+        { difficulty: 'easy', questionCount: 5 },
+        { difficulty: 'medium', questionCount: 5 },
+        { difficulty: 'hard', questionCount: 5 }
+    ];
+
+    quizStageState = {
+        stageIndex: 0,
+        stageConfig,
+        quizDifficulty: quizDifficulty
+    };
+
+    // First stage questions
+    quizQuestions = generateQuizQuestions(
+        quizCategory,
+        quizStageState.stageConfig[0].difficulty,
+        quizStageState.stageConfig[0].questionCount
+    );
+
+    quizDifficulty = quizStageState.stageConfig[0].difficulty;
 
     loadQuizQuestion();
 }
+
+
 
 function generateQuizQuestions(category, difficulty){
 
@@ -1595,18 +1618,27 @@ function buildQuizChoices(correctWord, items, difficulty){
     const allWords = items.map(item => item.word);
     const distractorsAll = allWords.filter(word => word !== correctWord);
 
-    // Difficulty affects distractor pool (Hard = closer distractors => harder).
-    // Since categories are separate, we approximate closeness by using random sampling size:
-    // Easy: fewer distractors available -> more “random” chances.
-    // Hard: use a larger distractor pool -> higher chance of similar-looking images.
-    const cfg = QUIZ_DIFFICULTY[difficulty] || QUIZ_DIFFICULTY.easy;
+    // Required choice counts per difficulty:
+    // easy => 3, medium => 6, hard => 10
+    const choiceTargetByDifficulty = {
+        easy: 3,
+        medium: 6,
+        hard: 10
+    };
+
+    const requiredChoiceCount = choiceTargetByDifficulty[difficulty] || choiceTargetByDifficulty.easy;
+
+    // Use a larger distractor sample on harder difficulties
     const fraction = difficulty === 'easy' ? 0.55 : (difficulty === 'medium' ? 0.75 : 1);
-    const targetCount = Math.max(3, Math.min(distractorsAll.length, Math.floor(distractorsAll.length * fraction)));
+    const sampleCount = Math.min(
+        distractorsAll.length,
+        Math.max(requiredChoiceCount - 1, Math.floor(distractorsAll.length * fraction))
+    );
 
     const sampledDistractors = distractorsAll
         .map(word => ({word, sort: Math.random()}))
         .sort((a,b) => a.sort - b.sort)
-        .slice(0, targetCount)
+        .slice(0, sampleCount)
         .map(x => x.word);
 
     const choices = [correctWord];
@@ -1616,18 +1648,24 @@ function buildQuizChoices(correctWord, items, difficulty){
         .sort((a,b) => a.sort - b.sort)
         .map(entry => entry.word);
 
-    while(choices.length < 4 && shuffled.length){
-        choices.push(shuffled.shift());
+    while (choices.length < requiredChoiceCount && shuffled.length) {
+        const next = shuffled.shift();
+        if (!choices.includes(next)) choices.push(next);
     }
 
-    // Ensure exactly 4 options if possible
-    while(choices.length < 4){
+    // Fallback: fill remaining (without duplicates)
+    while (choices.length < requiredChoiceCount && distractorsAll.length) {
         const fallback = distractorsAll[Math.floor(Math.random() * distractorsAll.length)];
         if (!choices.includes(fallback)) choices.push(fallback);
+        else {
+            // If duplicate, try another random one
+            // (loop will eventually find a new value)
+        }
     }
 
     return choices.sort(() => Math.random() - 0.5);
 }
+
 
 
 function loadQuizQuestion(){
@@ -1635,19 +1673,37 @@ function loadQuizQuestion(){
     const question = quizQuestions[currentQuizIndex];
 
     quizQuestionEl.textContent = question.prompt;
-    // Force quiz display to match “Question 1-10” format
-    // regardless of adaptive question length.
-    const displayIndex = Math.min(currentQuizIndex + 1, 10);
-    questionNumberEl.textContent = `Question ${displayIndex} of 10`;
+
+    // Display fixed 1-15 slot progression (even if quiz ends early)
+    const displayIndex = currentQuizIndex + 1;
+    questionNumberEl.textContent = `Question ${displayIndex} of 15`;
+
 
     currentScoreEl.textContent = String(quizScore);
     quizProgressFillEl.style.width =
         `${Math.round((currentQuizIndex / quizQuestions.length) * 100)}%`;
     quizFeedbackEl.textContent = "";
 
+    const quizAnswerGrid = document.getElementById("quizAnswerGrid");
+    if (quizAnswerGrid) {
+        quizAnswerGrid.dataset.quizChoiceLayout = quizDifficulty;
+    }
+
+    // Enable only the required number of choice buttons per difficulty
+    const requiredChoiceCountByDifficulty = {
+        easy: 3,
+        medium: 6,
+        hard: 10
+    };
+
+    const requiredChoiceCount = requiredChoiceCountByDifficulty[quizDifficulty] || requiredChoiceCountByDifficulty.easy;
+
     answerButtons.forEach((button, index) => {
-        button.disabled = false;
+        const isUsed = index < requiredChoiceCount;
+
+        button.disabled = !isUsed;
         button.classList.remove("correct", "wrong", "selected");
+
         const answerWord = question.choices[index] || "";
         button.dataset.choice = answerWord;
 
@@ -1655,7 +1711,7 @@ function loadQuizQuestion(){
         const imageDiv = button.querySelector(".answer-image");
 
         if (imageDiv) {
-            if (answerItem && answerItem.image) {
+            if (isUsed && answerItem && answerItem.image) {
                 imageDiv.style.backgroundImage = `url('${answerItem.image}')`;
                 imageDiv.style.backgroundSize = "cover";
                 imageDiv.style.backgroundPosition = "center";
@@ -1734,8 +1790,63 @@ function confirmQuizAnswer(){
     }
 }
 
+function getExpectedQuestionCountForDifficulty(difficulty) {
+    const cfg = QUIZ_DIFFICULTY[difficulty] || QUIZ_DIFFICULTY.easy;
+    return cfg.questionCount;
+}
+
+function getNextDifficultyAfterCompletion(currentDifficulty, score) {
+    // Spec:
+    // Easy passed with exactly 5/5 correct -> starts Medium
+    // Medium passed with exactly 10/10 correct -> starts Hard
+    // Otherwise -> ends quiz and returns to menu (and resets to Easy)
+
+    if (currentDifficulty === 'easy' && score === 5) {
+        return 'medium';
+    }
+
+    if (currentDifficulty === 'medium' && score === 10) {
+        return 'hard';
+    }
+
+    return 'end';
+}
+
 function finishQuiz(){
 
+    // If there are more stages (easy -> medium -> hard), load the next stage.
+    if (quizStageState && quizStageState.stageIndex < quizStageState.stageConfig.length - 1) {
+
+        quizStageState.stageIndex++;
+
+        quizDifficulty = quizStageState.stageConfig[quizStageState.stageIndex].difficulty;
+
+        applyQuizDifficultyUI();
+
+        quizAnswered = false;
+        quizComplete = false;
+        selectedQuizChoice = null;
+
+        currentQuizIndex = 0;
+        quizFeedbackEl.textContent = "";
+        quizProgressFillEl.style.width = "0%";
+
+        quizQuestions = generateQuizQuestions(
+            quizCategory,
+            quizDifficulty,
+            quizStageState.stageConfig[quizStageState.stageIndex].questionCount
+        );
+
+    // Update question number display to restart at 1 for each stage.
+        questionNumberEl.textContent = selectedLanguage === 'tl' ? `Tanong 1 ng 5` : `Question 1 of 5`;
+
+
+        loadQuizQuestion();
+        return;
+
+    }
+
+    // No more stages: finish entire quiz session
     quizComplete = true;
     quizProgressFillEl.style.width = "100%";
     quizQuestionEl.textContent = selectedLanguage === 'tl' ? "Tapos na ang Pagsusulit!" : "Quiz Complete!";
@@ -1750,12 +1861,20 @@ function finishQuiz(){
         btn.disabled = true;
         btn.classList.remove("correct", "wrong");
     });
+
+    // Persist summary for teacher dashboard
     saveQuizSummary();
+
+    // Reset stored difficulty
+    localStorage.setItem('quizDifficulty', 'easy');
 
     setTimeout(() => {
         showScreen(menuScreen);
     }, 1800);
 }
+
+
+
 
 function saveQuizSummary() {
     const student = localStorage.getItem("studentName") || "Unknown";
@@ -1875,6 +1994,11 @@ window.addEventListener("load",()=>{
 // ======================================================
 // END OF PART 2
 // ======================================================
+
+
+
+
+
 
 
 
