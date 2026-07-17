@@ -1806,53 +1806,33 @@ function confirmQuizAnswer(){
         quizCorrectFeedbackToggle = (quizCorrectFeedbackToggle + 1) % 2;
         const isEven = quizCorrectFeedbackToggle === 0;
 
-        const line1 = selectedLanguage === 'tl'
+        const message = selectedLanguage === 'tl'
             ? (isEven ? "Mahusay! Mas gumaganda ka araw-araw!" : "Awesome! Tama yan!")
             : (isEven ? "Nice work! You're getting better every time!" : "Awesome! That's the correct answer!");
 
-        const line2 = selectedLanguage === 'tl'
-            ? `Ang tamang sagot ay ${translateWord(correct)}!`
-            : (isEven ? `Correct answer: ${correct}` : `Correct! ${correct}`);
+        // Keep popup notification, UI feedback, and TTS EXACTLY the same
+        quizFeedbackEl.textContent = message;
+        showNotification(message);
+        speakText(message).then(() => {
+            advanceQuiz();
+        });
 
-        // (Removed quiz text feedback; keep notifications only)
-        // const sparkle = selectedLanguage === 'tl' ? "🌟" : "⭐";
-        // quizFeedbackEl.innerHTML = `${sparkle} ${line1}<br><span style="font-size:22px">${line2}</span>`;
-
-
-        // Pop-up notification (alternating)
-        showNotification(line1.replace(/<br[^>]*>/g, ''));
-
-        if (selectedLanguage === 'tl') {
-            speakText(`Magaling! Ang tamang sagot ay ${translateWord(correct)}.`);
-        }
     } else {
         quizWrongFeedbackToggle = (quizWrongFeedbackToggle + 1) % 2;
+        const isFirstWrongMessage = quizWrongFeedbackToggle === 0;
 
-        const line1 = selectedLanguage === 'tl'
+        const message = selectedLanguage === 'tl'
             ? "Nagagawa mo ito! Magpatuloy ka!"
-            : "You're doing great! Keep trying!";
-        const line2 = selectedLanguage === 'tl'
-            ? `Ang tamang sagot ay ${translateWord(correct)}!`
-            : "That's alright! Let's try again together!";
+            : (isFirstWrongMessage
+                ? "Nice Try! it's okay to make mistakes!"
+                : "You're doing great! Keep trying!");
 
-        // (Removed quiz text feedback; keep notifications only)
-        // quizFeedbackEl.innerHTML = `❌ ${line1}<br><span style="font-size:22px">${line2}</span>`;
-
-
-        showNotification(line1);
-
-        // Alphabet wrong feedback: make TTS match the on-screen text (no HTML, same wording)
-        if (quizCategory === 'alphabet') {
-            const ttsText = selectedLanguage === 'tl'
-                ? `Mali. ${line1} Ang tamang sagot ay ${translateWord(correct)}.`
-                : `Sorry, that's wrong. ${line1} ${line2}`;
-            speakText(ttsText);
-        } else {
-            // Keep existing behavior for other categories
-            if (selectedLanguage === 'tl') {
-                speakText(`Mali. Ang tamang sagot ay ${translateWord(correct)}.`);
-            }
-        }
+        // Keep popup notification, UI feedback, and TTS EXACTLY the same
+        quizFeedbackEl.textContent = message;
+        showNotification(message);
+        speakText(message).then(() => {
+            advanceQuiz();
+        });
     }
 
     currentScoreEl.textContent = String(quizScore);
@@ -1868,15 +1848,7 @@ function confirmQuizAnswer(){
         }
     };
 
-    const feedbackPromise = speakQuizFeedback(isCorrect, correct);
-
-    if (isCorrect) {
-        setTimeout(() => {
-            feedbackPromise.then(advanceQuiz);
-        }, 1400);
-    } else {
-        feedbackPromise.then(advanceQuiz);
-    }
+    return;
 }
 
 function getExpectedQuestionCountForDifficulty(difficulty) {
