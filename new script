@@ -1584,10 +1584,11 @@ function initializeQuiz(){
         quizDifficulty: quizDifficulty
     };
 
-    // Little “kids mode” tips (keeps quiz feeling alive)
-    quizFeedbackEl.innerHTML = selectedLanguage === 'tl'
-        ? "Pindutin ang tamang sagot! 🌈<br><span style=\"font-size:20px\">Good luck!</span>"
-        : "Pick the correct answer! 🌟<br><span style=\"font-size:20px\">Good luck!</span>";
+    // (Removed quiz text feedback; keep notifications only)
+    // quizFeedbackEl.innerHTML = selectedLanguage === 'tl'
+    //     ? "Pindutin ang tamang sagot! 🌈<br><span style=\"font-size:20px\">Good luck!</span>"
+    //     : "Pick the correct answer! 🌟<br><span style=\"font-size:20px\">Good luck!</span>";
+
 
     // First stage questions
     quizQuestions = generateQuizQuestions(
@@ -1616,13 +1617,35 @@ function generateQuizQuestions(category, difficulty){
         .map(entry => entry.item)
         .slice(0, questionCount);
 
-    return shuffled.map(item => ({
-        prompt: selectedLanguage === 'tl'
-            ? `Alin sa mga ito ang ${translateWord(item.word)}?`
-            : `Which one is ${item.word}?`,
-        correct: item.word,
-        choices: buildQuizChoices(item.word, items, difficulty)
-    }));
+    return shuffled.map((item, idx) => {
+        // For Alphabet quiz, prompt should reference the LETTER directly (with alternating templates)
+        if (category === 'alphabet') {
+            const letter = item.letter;
+            const isAlt = idx % 2 === 1;
+
+            const enPrompt = isAlt
+                ? `The letter ${letter} needs your help! Can you find the letter ${letter}?`
+                : `Where is the letter ${letter}? Let's find it together!`;
+
+            const tlPrompt = isAlt
+                ? `Kailangan ng tulong ang letrang ${letter}! Maaari mo bang hanapin ang letrang ${letter}?`
+                : `Nasaan ang letrang ${letter}? Hanapin natin ito nang magkasama!`;
+
+            return {
+                prompt: selectedLanguage === 'tl' ? tlPrompt : enPrompt,
+                correct: item.word,
+                choices: buildQuizChoices(item.word, items, difficulty)
+            };
+        }
+
+        return {
+            prompt: selectedLanguage === 'tl'
+                ? `Alin sa mga ito ang ${translateWord(item.word)}?`
+                : `Which one is ${item.word}?`,
+            correct: item.word,
+            choices: buildQuizChoices(item.word, items, difficulty)
+        };
+    });
 }
 
 function buildQuizChoices(correctWord, items, difficulty){
@@ -1791,8 +1814,10 @@ function confirmQuizAnswer(){
             ? `Ang tamang sagot ay ${translateWord(correct)}!`
             : (isEven ? `Correct answer: ${correct}` : `Correct! ${correct}`);
 
-        const sparkle = selectedLanguage === 'tl' ? "🌟" : "⭐";
-        quizFeedbackEl.innerHTML = `${sparkle} ${line1}<br><span style="font-size:22px">${line2}</span>`;
+        // (Removed quiz text feedback; keep notifications only)
+        // const sparkle = selectedLanguage === 'tl' ? "🌟" : "⭐";
+        // quizFeedbackEl.innerHTML = `${sparkle} ${line1}<br><span style="font-size:22px">${line2}</span>`;
+
 
         // Pop-up notification (alternating)
         showNotification(line1.replace(/<br[^>]*>/g, ''));
@@ -1810,12 +1835,23 @@ function confirmQuizAnswer(){
             ? `Ang tamang sagot ay ${translateWord(correct)}!`
             : "That's alright! Let's try again together!";
 
-        quizFeedbackEl.innerHTML = `❌ ${line1}<br><span style="font-size:22px">${line2}</span>`;
+        // (Removed quiz text feedback; keep notifications only)
+        // quizFeedbackEl.innerHTML = `❌ ${line1}<br><span style="font-size:22px">${line2}</span>`;
+
 
         showNotification(line1);
 
-        if (selectedLanguage === 'tl') {
-            speakText(`Mali. Ang tamang sagot ay ${translateWord(correct)}.`);
+        // Alphabet wrong feedback: make TTS match the on-screen text (no HTML, same wording)
+        if (quizCategory === 'alphabet') {
+            const ttsText = selectedLanguage === 'tl'
+                ? `Mali. ${line1} Ang tamang sagot ay ${translateWord(correct)}.`
+                : `Sorry, that's wrong. ${line1} ${line2}`;
+            speakText(ttsText);
+        } else {
+            // Keep existing behavior for other categories
+            if (selectedLanguage === 'tl') {
+                speakText(`Mali. Ang tamang sagot ay ${translateWord(correct)}.`);
+            }
         }
     }
 
