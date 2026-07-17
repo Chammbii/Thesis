@@ -1252,33 +1252,32 @@ footer{
 /* Difficulty-based layouts */
 #quizAnswerGrid[data-quiz-choice-layout="easy"]{
     /* 3 choices => 1 row x 3 columns */
-    grid-template-columns:repeat(3,1fr);
-    grid-template-rows:repeat(1,auto);
-    grid-auto-rows:auto;
+    grid-template-columns:repeat(3,minmax(0,1fr));
 }
 
 #quizAnswerGrid[data-quiz-choice-layout="medium"]{
     /* 6 choices => 2 rows x 3 columns */
-    grid-template-columns:repeat(3,1fr);
-    grid-template-rows:repeat(2,auto);
-    grid-auto-rows:auto;
+    grid-template-columns:repeat(3,minmax(0,1fr));
 }
 
 #quizAnswerGrid[data-quiz-choice-layout="hard"]{
     /* 10 choices => 2 rows x 5 columns */
-    grid-template-columns:repeat(5,1fr);
-    grid-template-rows:repeat(2,auto);
-    grid-auto-rows:auto;
+    grid-template-columns:repeat(5,minmax(0,1fr));
 }
 
-/* Sizing tweaks for variable grid */
-.answer-card{
-    min-height:170px;
-    max-width:180px;
+/* Hide unused choice slots so only the active count shows */
+.answer-card.unused,
+.answer-card[hidden]{
+    display:none !important;
 }
 
-.answer-image{
-    height:125px;
+#quizAnswerGrid[data-quiz-choice-layout="hard"] .answer-card{
+    max-width:150px;
+    min-height:160px;
+}
+
+#quizAnswerGrid[data-quiz-choice-layout="hard"] .answer-image{
+    height:110px;
 }
 
 .answer-card{
@@ -1387,23 +1386,6 @@ footer{
 
     opacity:.9;
 
-}
-
-/* =====================================================
-   FEEDBACK
-===================================================== */
-
-#quizFeedback{
-
-    margin-top:30px;
-    padding:0 20px;
-    font-size:28px;
-    text-align:center;
-    color:#ff9800;
-    min-height:48px;
-    line-height:1.3;
-    width:100%;
-    display:block;
 }
 
 /* =====================================================
@@ -1522,10 +1504,15 @@ footer{
 
     }
 
-    .answer-grid{
+    #quizAnswerGrid[data-quiz-choice-layout="easy"],
+    #quizAnswerGrid[data-quiz-choice-layout="medium"]{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        gap:8px;
+    }
 
-        grid-template-columns:1fr;
-
+    #quizAnswerGrid[data-quiz-choice-layout="hard"]{
+        grid-template-columns:repeat(5,minmax(0,1fr));
+        gap:6px;
     }
 
     .answer-card{
@@ -1536,15 +1523,19 @@ footer{
 
     }
 
+    #quizAnswerGrid[data-quiz-choice-layout="hard"] .answer-card{
+        padding:8px;
+        min-height:120px;
+        max-width:none;
+    }
+
+    #quizAnswerGrid[data-quiz-choice-layout="hard"] .answer-image{
+        height:80px;
+    }
+
     .quiz-score{
 
         font-size:20px;
-
-    }
-
-    #quizFeedback{
-
-        font-size:24px;
 
     }
 
@@ -2076,7 +2067,6 @@ footer{
 
 
 }
-
 
 
 
